@@ -37,5 +37,6 @@ AC_CHECK_FUNCS([memset select socket])
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
-                 src/c/Makefile])
+                 src/c/Makefile
+                 src/c/.obj/Makefile])
 AC_OUTPUT
