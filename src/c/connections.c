@@ -17,8 +17,7 @@ al_connection_t *al_connection_new (al_server_t *server, int fd,
    al_connection_t *new;
 
    /* allocate and assign data. */
-   new = malloc (sizeof (al_connection_t));
-   memset (new, 0, sizeof (al_connection_t));
+   new = calloc (1, sizeof (al_connection_t));
    new->sock_fd = fd;
    if (addr) {
       new->addr = *addr;
