@@ -12,9 +12,9 @@
 #include "defs.h"
 
 /* our connections. */
-struct _connection_type {
+struct _al_connection_t {
    /* flags! */
-   flags_type flags;
+   al_flags_t flags;
 
    /* socket stuff. */
    int sock_fd;
@@ -30,23 +30,25 @@ struct _connection_type {
    void *data;
 
    /* link to server. */
-   server_type *server;
-   connection_type *prev, *next;
+   al_server_t *server;
+   al_connection_t *prev, *next;
 };
 
 /* functions for connection management. */
-connection_type *connection_new (server_type *server, int fd,
+al_connection_t *al_connection_new (al_server_t *server, int fd,
    struct sockaddr_in *addr, socklen_t addr_size);
-int connection_free (connection_type *c);
-int connection_append_buffer (connection_type *c, unsigned char **buf,
+int al_connection_free (al_connection_t *c);
+int al_connection_append_buffer (al_connection_t *c, unsigned char **buf,
    size_t *size, size_t *len, size_t *pos, unsigned char *input, size_t isize);
-int connection_fetch_buffer (connection_type *c, unsigned char **buf,
+int al_connection_fetch_buffer (al_connection_t *c, unsigned char **buf,
    size_t *size, size_t *len, size_t *pos, unsigned char *output, size_t osize);
-int connection_read (connection_type *c, unsigned char *buf, size_t size);
-int connection_fd_read (connection_type *c);
-int connection_fd_write (connection_type *c);
-int connection_write (connection_type *c, unsigned char *buf, size_t size);
-int connection_write_all (server_type *server, unsigned char *buf, size_t size);
-int connection_wrote (connection_type *c);
+int al_connection_read (al_connection_t *c, unsigned char *buf, size_t size);
+int al_connection_fd_read (al_connection_t *c);
+int al_connection_fd_write (al_connection_t *c);
+int al_connection_write (al_connection_t *c, unsigned char *buf,
+   size_t size);
+int al_connection_write_all (al_server_t *server, unsigned char *buf,
+   size_t size);
+int al_connection_wrote (al_connection_t *c);
 
 #endif

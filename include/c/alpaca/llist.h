@@ -6,7 +6,7 @@
 #define __ALPACA_C_LLIST_H
 
 /* global linked-list macros. */
-#define LLIST_LINK_FRONT_GLOBAL(NODE, PREV, NEXT, PARENT_LIST) \
+#define AL_LL_LINK_FRONT_GLOBAL(NODE, PREV, NEXT, PARENT_LIST) \
    do { \
       NODE->NEXT = PARENT_LIST; \
       NODE->PREV = NULL; \
@@ -15,7 +15,7 @@
          NODE->NEXT->PREV = NODE; \
    } while (0)
 
-#define LLIST_LINK_BACK_GLOBAL(TYPE, NODE, PREV, NEXT, PARENT_LIST) \
+#define AL_LL_LINK_BACK_GLOBAL(TYPE, NODE, PREV, NEXT, PARENT_LIST) \
    do { \
       NODE->NEXT = NULL; \
       if (PARENT_LIST == NULL) { \
@@ -30,7 +30,7 @@
       } \
    } while (0)
 
-#define LLIST_UNLINK_GLOBAL(NODE, PREV, NEXT, PARENT_LIST) \
+#define AL_LL_UNLINK_GLOBAL(NODE, PREV, NEXT, PARENT_LIST) \
    do { \
       if (NODE->PREV) \
          NODE->PREV->NEXT = NODE->NEXT; \
@@ -43,7 +43,7 @@
    } while (0)
 
 /* non-global linked-list macros. */
-#define LLIST_LINK_FRONT(NODE, UP, PREV, NEXT, PARENT, LIST) \
+#define AL_LL_LINK_FRONT(NODE, UP, PREV, NEXT, PARENT, LIST) \
    do { \
       NODE->UP = PARENT; \
       NODE->NEXT = PARENT->LIST; \
@@ -53,7 +53,7 @@
          NODE->NEXT->PREV = NODE; \
    } while (0)
 
-#define LLIST_LINK_BACK(TYPE, NODE, UP, PREV, NEXT, PARENT, LIST) \
+#define AL_LL_LINK_BACK(TYPE, NODE, UP, PREV, NEXT, PARENT, LIST) \
    do { \
       NODE->UP = PARENT; \
       NODE->NEXT = NULL; \
@@ -69,7 +69,7 @@
       } \
    } while (0)
 
-#define LLIST_LINK_AFTER(NODE, UP, PREV, NEXT, PARENT, LIST, NEW_PREV) \
+#define AL_LL_LINK_AFTER(NODE, UP, PREV, NEXT, PARENT, LIST, NEW_PREV) \
    do { \
       NODE->UP = PARENT; \
       NODE->PREV = NEW_PREV; \
@@ -85,7 +85,7 @@
          NODE->NEXT->PREV = NODE; \
    } while (0)
 
-#define LLIST_UNLINK(NODE, PREV, NEXT, PARENT, LIST) \
+#define AL_LL_UNLINK(NODE, PREV, NEXT, PARENT, LIST) \
    do { \
       if (NODE->PREV) \
          NODE->PREV->NEXT = NODE->NEXT; \

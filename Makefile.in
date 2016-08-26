@@ -137,8 +137,8 @@ am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(otherincludedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libalpaca_la_LIBADD =
 am__dirstamp = $(am__leading_dot)dirstamp
-am_libalpaca_la_OBJECTS = src/c/libalpaca_la-server.lo \
-	src/c/libalpaca_la-connections.lo
+am_libalpaca_la_OBJECTS = src/c/libalpaca_la-connections.lo \
+	src/c/libalpaca_la-mutex.lo src/c/libalpaca_la-server.lo
 libalpaca_la_OBJECTS = $(am_libalpaca_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -244,6 +244,10 @@ CCDEPMODE = @CCDEPMODE@
 CFLAGS = @CFLAGS@
 CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
+CXX = @CXX@
+CXXCPP = @CXXCPP@
+CXXDEPMODE = @CXXDEPMODE@
+CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
@@ -300,6 +304,7 @@ abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
 ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
+ac_ct_CXX = @ac_ct_CXX@
 ac_ct_DUMPBIN = @ac_ct_DUMPBIN@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@
@@ -353,11 +358,12 @@ libalpaca_la_LDFLAGS = \
    -release 0.0.1
 
 libalpaca_la_CFLAGS = \
-   -I$(top_srcdir)/include/c
+   -I$(top_srcdir)/include/c -Wall -std=c99
 
 libalpaca_la_SOURCES = \
-   src/c/server.c \
-   src/c/connections.c
+   src/c/connections.c \
+   src/c/mutex.c \
+   src/c/server.c
 
 otherincludedir = \
    $(includedir)/alpaca
@@ -367,6 +373,7 @@ otherinclude_HEADERS = \
    include/c/alpaca/defs.h \
    include/c/alpaca/connections.h \
    include/c/alpaca/llist.h \
+   include/c/alpaca/mutex.h \
    include/c/alpaca/server.h \
    include/c/alpaca/utils.h
 
@@ -464,9 +471,11 @@ src/c/$(am__dirstamp):
 src/c/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) src/c/$(DEPDIR)
 	@: > src/c/$(DEPDIR)/$(am__dirstamp)
-src/c/libalpaca_la-server.lo: src/c/$(am__dirstamp) \
-	src/c/$(DEPDIR)/$(am__dirstamp)
 src/c/libalpaca_la-connections.lo: src/c/$(am__dirstamp) \
+	src/c/$(DEPDIR)/$(am__dirstamp)
+src/c/libalpaca_la-mutex.lo: src/c/$(am__dirstamp) \
+	src/c/$(DEPDIR)/$(am__dirstamp)
+src/c/libalpaca_la-server.lo: src/c/$(am__dirstamp) \
 	src/c/$(DEPDIR)/$(am__dirstamp)
 
 libalpaca.la: $(libalpaca_la_OBJECTS) $(libalpaca_la_DEPENDENCIES) $(EXTRA_libalpaca_la_DEPENDENCIES) 
@@ -481,6 +490,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-connections.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-mutex.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-server.Plo@am__quote@
 
 .c.o:
@@ -507,19 +517,26 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
 
-src/c/libalpaca_la-server.lo: src/c/server.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -MT src/c/libalpaca_la-server.lo -MD -MP -MF src/c/$(DEPDIR)/libalpaca_la-server.Tpo -c -o src/c/libalpaca_la-server.lo `test -f 'src/c/server.c' || echo '$(srcdir)/'`src/c/server.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/c/$(DEPDIR)/libalpaca_la-server.Tpo src/c/$(DEPDIR)/libalpaca_la-server.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/c/server.c' object='src/c/libalpaca_la-server.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -c -o src/c/libalpaca_la-server.lo `test -f 'src/c/server.c' || echo '$(srcdir)/'`src/c/server.c
-
 src/c/libalpaca_la-connections.lo: src/c/connections.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -MT src/c/libalpaca_la-connections.lo -MD -MP -MF src/c/$(DEPDIR)/libalpaca_la-connections.Tpo -c -o src/c/libalpaca_la-connections.lo `test -f 'src/c/connections.c' || echo '$(srcdir)/'`src/c/connections.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/c/$(DEPDIR)/libalpaca_la-connections.Tpo src/c/$(DEPDIR)/libalpaca_la-connections.Plo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/c/connections.c' object='src/c/libalpaca_la-connections.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -c -o src/c/libalpaca_la-connections.lo `test -f 'src/c/connections.c' || echo '$(srcdir)/'`src/c/connections.c
+
+src/c/libalpaca_la-mutex.lo: src/c/mutex.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -MT src/c/libalpaca_la-mutex.lo -MD -MP -MF src/c/$(DEPDIR)/libalpaca_la-mutex.Tpo -c -o src/c/libalpaca_la-mutex.lo `test -f 'src/c/mutex.c' || echo '$(srcdir)/'`src/c/mutex.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/c/$(DEPDIR)/libalpaca_la-mutex.Tpo src/c/$(DEPDIR)/libalpaca_la-mutex.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/c/mutex.c' object='src/c/libalpaca_la-mutex.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -c -o src/c/libalpaca_la-mutex.lo `test -f 'src/c/mutex.c' || echo '$(srcdir)/'`src/c/mutex.c
+
+src/c/libalpaca_la-server.lo: src/c/server.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -MT src/c/libalpaca_la-server.lo -MD -MP -MF src/c/$(DEPDIR)/libalpaca_la-server.Tpo -c -o src/c/libalpaca_la-server.lo `test -f 'src/c/server.c' || echo '$(srcdir)/'`src/c/server.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/c/$(DEPDIR)/libalpaca_la-server.Tpo src/c/$(DEPDIR)/libalpaca_la-server.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/c/server.c' object='src/c/libalpaca_la-server.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -c -o src/c/libalpaca_la-server.lo `test -f 'src/c/server.c' || echo '$(srcdir)/'`src/c/server.c
 
 mostlyclean-libtool:
 	-rm -f *.lo

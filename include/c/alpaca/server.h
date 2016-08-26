@@ -23,18 +23,18 @@
 #endif
 
 /* structure for servers. */
-struct _server_type {
+struct _al_server_t {
    /* internal stuff. */
-   flags_type flags;
+   al_flags_t flags;
    struct sockaddr_in addr;
    int port, sock_fd, pipe_fd[2];
    fd_set fd_in, fd_out, fd_other;
 
    /* functions passed to servers. */
-   server_func *func[SERVER_FUNC_MAX];
+   al_server_func *func[AL_SERVER_FUNC_MAX];
 
    /* connections. */
-   connection_type *connection_list;
+   al_connection_t *connection_list;
 
    /* custom data we're passing to the server. */
    void *data;
@@ -42,31 +42,31 @@ struct _server_type {
 
    /* threading stuff. */
    pthread_t pthread;
-   pthread_mutex_t mutex;
+   al_mutex_t *mutex;
    int mutex_count;
 };
 
 /* functions for server management. */
-server_type *server_new (int port, flags_type flags);
-int server_is_open (server_type *server);
-int server_is_running (server_type *server);
-int server_close (server_type *server);
-int server_open (server_type *server);
-int server_add_fd (server_type *server, int fd);
-void *server_pthread_func (void *arg);
-int server_start (server_type *server);
-int server_wait (server_type *server);
-int server_run_func (server_type *server);
-int server_new_connection (server_type *server, int fd,
-                           struct sockaddr_in *addr, socklen_t addr_size);
-int server_stop (server_type *server);
-int server_interrupt (server_type *server);
-int server_free (server_type *server);
-int server_lock (server_type *server);
-int server_unlock (server_type *server);
-int server_func_read (server_type *server, server_func *func);
-int server_func_join (server_type *server, server_func *func);
-int server_func_leave (server_type *server, server_func *func);
-int server_func_set (server_type *server, int ref, server_func *func);
+al_server_t *al_server_new (int port, al_flags_t flags);
+int al_server_is_open (al_server_t *server);
+int al_server_is_running (al_server_t *server);
+int al_server_close (al_server_t *server);
+int al_server_open (al_server_t *server);
+int al_server_add_fd (al_server_t *server, int fd);
+void *al_server_pthread_func (void *arg);
+int al_server_start (al_server_t *server);
+int al_server_wait (al_server_t *server);
+int al_server_run_func (al_server_t *server);
+int al_server_new_connection (al_server_t *server, int fd,
+   struct sockaddr_in *addr, socklen_t addr_size);
+int al_server_stop (al_server_t *server);
+int al_server_interrupt (al_server_t *server);
+int al_server_free (al_server_t *server);
+int al_server_lock (al_server_t *server);
+int al_server_unlock (al_server_t *server);
+int al_server_func_read (al_server_t *server, al_server_func *func);
+int al_server_func_join (al_server_t *server, al_server_func *func);
+int al_server_func_leave (al_server_t *server, al_server_func *func);
+int al_server_func_set (al_server_t *server, int ref, al_server_func *func);
 
 #endif

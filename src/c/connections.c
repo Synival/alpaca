@@ -11,14 +11,14 @@
 
 #include "alpaca/connections.h"
 
-connection_type *connection_new (server_type *server, int fd,
+al_connection_t *al_connection_new (al_server_t *server, int fd,
    struct sockaddr_in *addr, socklen_t addr_size)
 {
-   connection_type *new;
+   al_connection_t *new;
 
    /* allocate and assign data. */
-   new = malloc (sizeof (connection_type));
-   memset (new, 0, sizeof (connection_type));
+   new = malloc (sizeof (al_connection_t));
+   memset (new, 0, sizeof (al_connection_t));
    new->sock_fd = fd;
    if (addr) {
       new->addr = *addr;
@@ -26,47 +26,47 @@ connection_type *connection_new (server_type *server, int fd,
    }
 
    /* link to our server. */
-   server_lock (server);
-   LLIST_LINK_FRONT (new, server, prev, next, server, connection_list);
-   if (server->func[SERVER_FUNC_JOIN])
-      if (!server->func[SERVER_FUNC_JOIN] (server, new, NULL, 0)) {
-         connection_free (new);
+   al_server_lock (server);
+   AL_LL_LINK_FRONT (new, server, prev, next, server, connection_list);
+   if (server->func[AL_SERVER_FUNC_JOIN])
+      if (!server->func[AL_SERVER_FUNC_JOIN] (server, new, NULL, 0)) {
+         al_connection_free (new);
          return NULL;
       }
-   server_unlock (server);
+   al_server_unlock (server);
 
    /* return our new connection. */
    return new;
 }
 
-int connection_free (connection_type *c)
+int al_connection_free (al_connection_t *c)
 {
-   server_type *server;
+   al_server_t *server;
 
    /* boo race conditions! */
    server = c->server;
-   server_lock (server);
+   al_server_lock (server);
 
    /* function for leaving? */
-   if (server->func[SERVER_FUNC_LEAVE])
-      server->func[SERVER_FUNC_LEAVE] (server, c, NULL, 0);
+   if (server->func[AL_SERVER_FUNC_LEAVE])
+      server->func[AL_SERVER_FUNC_LEAVE] (server, c, NULL, 0);
 
    /* attempt to send remaining output. */
-   connection_fd_write (c);
+   al_connection_fd_write (c);
 
    /* close our socket. */
    socket_close (c->sock_fd);
 
    /* unlink. */
-   LLIST_UNLINK (c, prev, next, c->server, connection_list);
+   AL_LL_UNLINK (c, prev, next, c->server, connection_list);
 
    /* free remaining data and return success. */
    free (c);
-   server_unlock (server);
+   al_server_unlock (server);
    return 1;
 }
 
-int connection_append_buffer (connection_type *c, unsigned char **buf,
+int al_connection_append_buffer (al_connection_t *c, unsigned char **buf,
    size_t *size, size_t *len, size_t *pos, unsigned char *input, size_t isize)
 {
    size_t new_size;
@@ -76,7 +76,7 @@ int connection_append_buffer (connection_type *c, unsigned char **buf,
       return 0;
 
    /* don't allow reading while we're doing this. */
-   server_lock (c->server);
+   al_server_lock (c->server);
 
    /* how large should our buffer be? */
    if (*buf == NULL)
@@ -102,11 +102,11 @@ int connection_append_buffer (connection_type *c, unsigned char **buf,
    *((*buf) + *len) = 0;
 
    /* we did it, you guise! */
-   server_unlock (c->server);
+   al_server_unlock (c->server);
    return 1;
 }
 
-int connection_fetch_buffer (connection_type *c, unsigned char **buf,
+int al_connection_fetch_buffer (al_connection_t *c, unsigned char **buf,
    size_t *size, size_t *len, size_t *pos, unsigned char *output, size_t osize)
 {
    size_t input_len;
@@ -116,19 +116,19 @@ int connection_fetch_buffer (connection_type *c, unsigned char **buf,
       return 0;
 
    /* don't allow writing while we're doing this. */
-   server_lock (c->server);
+   al_server_lock (c->server);
 
    /* ...and don't bother if there's nothing to read. */
    input_len = *len - *pos;
    if (*buf == NULL || input_len <= 0) {
-      server_unlock (c->server);
+      al_server_unlock (c->server);
       return 0;
    }
    /* are we only reading a portion? */
    else if (osize < input_len) {
       memcpy (output, *buf + *pos, sizeof (unsigned char) * osize);
       *pos += osize;
-      server_unlock (c->server);
+      al_server_unlock (c->server);
       return osize;
    }
    else {
@@ -138,18 +138,18 @@ int connection_fetch_buffer (connection_type *c, unsigned char **buf,
       /* reset our buffer and return the number of bytes we read. */
       *len = 0;
       *pos = 0;
-      server_unlock (c->server);
+      al_server_unlock (c->server);
       return input_len;
    }
 }
 
-int connection_read (connection_type *c, unsigned char *buf, size_t size)
+int al_connection_read (al_connection_t *c, unsigned char *buf, size_t size)
 {
-   return connection_fetch_buffer (c, &(c->input), &(c->input_size),
+   return al_connection_fetch_buffer (c, &(c->input), &(c->input_size),
       &(c->input_len), &(c->input_pos), buf, size);
 }
 
-int connection_fd_read (connection_type *c)
+int al_connection_fd_read (al_connection_t *c)
 {
    static unsigned char buf[4096];
    int res;
@@ -166,14 +166,14 @@ int connection_fd_read (connection_type *c)
    }
 
    /* add to our input buffer. */
-   connection_append_buffer (c, &(c->input), &(c->input_size),
+   al_connection_append_buffer (c, &(c->input), &(c->input_size),
       &(c->input_len), &(c->input_pos), buf, res);
 
    /* return the number of bytes read. */
    return res;
 }
 
-int connection_fd_write (connection_type *c)
+int al_connection_fd_write (al_connection_t *c)
 {
    size_t bytes, max;
    int res;
@@ -185,7 +185,8 @@ int connection_fd_write (connection_type *c)
    if (max <= 0)
       return 0;
    if ((res = write (c->sock_fd, c->output + c->output_pos, bytes)) <= 0) {
-      ERROR ("Couldn't write %ld bytes to client [%d].\n", bytes, c->sock_fd);
+      AL_ERROR ("Couldn't write %ld bytes to client [%d].\n", bytes,
+                c->sock_fd);
       return -1;
    }
 
@@ -193,47 +194,51 @@ int connection_fd_write (connection_type *c)
    if (res >= bytes) {
       c->output_len = 0;
       c->output_pos = 0;
-      c->flags &= ~CONNECTION_WROTE;
+      c->flags &= ~AL_CONNECTION_WROTE;
    }
    /* or just move forward a little bit. */
    else
       c->output_pos += bytes;
 
-   /* allow SERVER_FUNC_PRE_WRITE to run again once output_max reaches zero. */
+   /* allow AL_SERVER_FUNC_PRE_WRITE to run again once output_max
+    * reaches zero. */
    c->output_max -= res;
    if (c->output_max <= 0)
-      c->flags &= ~CONNECTION_WRITING;
+      c->flags &= ~AL_CONNECTION_WRITING;
 
    return bytes;
 }
 
-int connection_write (connection_type *c, unsigned char *buf, size_t size)
+int al_connection_write (al_connection_t *c, unsigned char *buf,
+   size_t size)
 {
    int res;
-   res = connection_append_buffer (c, &(c->output), &(c->output_size),
+   res = al_connection_append_buffer (c, &(c->output), &(c->output_size),
       &(c->output_len), &(c->input_pos), buf, size);
-   connection_wrote (c);
+   al_connection_wrote (c);
    return res;
 }
 
-int connection_write_all (server_type *server, unsigned char *buf, size_t size)
+int al_connection_write_all (al_server_t *server, unsigned char *buf,
+   size_t size)
 {
-   connection_type *c;
+   al_connection_t *c;
    int count;
 
    /* connection_write() to everyone! */
-   server_lock (server);
+   al_server_lock (server);
    count = 0;
    for (c = server->connection_list; c != NULL; c = c->next)
-      count += connection_write (c, buf, size);
-   server_unlock (server);
+      count += al_connection_write (c, buf, size);
+   al_server_unlock (server);
 
+   /* return the number of connections written to. */
    return count;
 }
 
-int connection_wrote (connection_type *c)
+int al_connection_wrote (al_connection_t *c)
 {
-   c->flags |= CONNECTION_WROTE;
-   server_interrupt (c->server);
+   c->flags |= AL_CONNECTION_WROTE;
+   al_server_interrupt (c->server);
    return 1;
 }
