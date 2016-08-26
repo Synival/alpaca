@@ -11,9 +11,9 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#include "connections.h"
+#include "alpaca/connections.h"
 
-#include "server.h"
+#include "alpaca/server.h"
 
 server_type *server_new (int port, flags_type flags)
 {

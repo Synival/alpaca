@@ -7,9 +7,9 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "server.h"
+#include "alpaca/server.h"
 
-#include "connections.h"
+#include "alpaca/connections.h"
 
 connection_type *connection_new (server_type *server, int fd,
    struct sockaddr_in *addr, socklen_t addr_size)
@@ -88,7 +88,7 @@ int connection_append_buffer (connection_type *c, unsigned char **buf,
 
    /* make sure our buffer is the proper size. */
    if (*buf == NULL) {
-      buf = malloc (sizeof (unsigned char) * new_size);
+      *buf = malloc (sizeof (unsigned char) * new_size);
       *size = new_size;
    }
    else if (new_size != *size) {

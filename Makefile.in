@@ -14,6 +14,7 @@
 
 @SET_MAKE@
 
+
 VPATH = @srcdir@
 am__is_gnu_make = { \
   if test -z '$(MAKELEVEL)'; then \
@@ -97,7 +98,8 @@ am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am $(top_srcdir)/configure \
-	$(am__configure_deps) $(am__DIST_COMMON)
+	$(am__configure_deps) $(otherinclude_HEADERS) \
+	$(am__DIST_COMMON)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
  configure.lineno config.status.lineno
 mkinstalldirs = $(install_sh) -d
@@ -131,7 +133,7 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
-am__installdirs = "$(DESTDIR)$(libdir)"
+am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(otherincludedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libalpaca_la_LIBADD =
 am__dirstamp = $(am__leading_dot)dirstamp
@@ -144,7 +146,7 @@ am__v_lt_0 = --silent
 am__v_lt_1 = 
 libalpaca_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libalpaca_la_CFLAGS) \
-	$(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+	$(CFLAGS) $(libalpaca_la_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -186,6 +188,7 @@ am__can_run_installinfo = \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
+HEADERS = $(otherinclude_HEADERS)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) \
 	$(LISP)config.h.in
 # Read a list of newline-separated strings from the standard input,
@@ -346,12 +349,26 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 ACLOCAL_AMFLAGS = -I m4
 lib_LTLIBRARIES = libalpaca.la
+libalpaca_la_LDFLAGS = \
+   -release 0.0.1
+
 libalpaca_la_CFLAGS = \
    -I$(top_srcdir)/include/c
 
 libalpaca_la_SOURCES = \
    src/c/server.c \
    src/c/connections.c
+
+otherincludedir = \
+   $(includedir)/alpaca
+
+otherinclude_HEADERS = \
+   include/c/alpaca/alpaca.h \
+   include/c/alpaca/defs.h \
+   include/c/alpaca/connections.h \
+   include/c/alpaca/llist.h \
+   include/c/alpaca/server.h \
+   include/c/alpaca/utils.h
 
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -513,6 +530,27 @@ clean-libtool:
 
 distclean-libtool:
 	-rm -f libtool config.lt
+install-otherincludeHEADERS: $(otherinclude_HEADERS)
+	@$(NORMAL_INSTALL)
+	@list='$(otherinclude_HEADERS)'; test -n "$(otherincludedir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(otherincludedir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(otherincludedir)" || exit 1; \
+	fi; \
+	for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  echo "$$d$$p"; \
+	done | $(am__base_list) | \
+	while read files; do \
+	  echo " $(INSTALL_HEADER) $$files '$(DESTDIR)$(otherincludedir)'"; \
+	  $(INSTALL_HEADER) $$files "$(DESTDIR)$(otherincludedir)" || exit $$?; \
+	done
+
+uninstall-otherincludeHEADERS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(otherinclude_HEADERS)'; test -n "$(otherincludedir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(otherincludedir)'; $(am__uninstall_files_from_dir)
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
@@ -738,9 +776,9 @@ distcleancheck: distclean
 	       exit 1; } >&2
 check-am: all-am
 check: check-am
-all-am: Makefile $(LTLIBRARIES) config.h
+all-am: Makefile $(LTLIBRARIES) $(HEADERS) config.h
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(otherincludedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -799,7 +837,7 @@ info: info-am
 
 info-am:
 
-install-data-am:
+install-data-am: install-otherincludeHEADERS
 
 install-dvi: install-dvi-am
 
@@ -847,7 +885,7 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-libLTLIBRARIES
+uninstall-am: uninstall-libLTLIBRARIES uninstall-otherincludeHEADERS
 
 .MAKE: all install-am install-strip
 
@@ -861,12 +899,13 @@ uninstall-am: uninstall-libLTLIBRARIES
 	info-am install install-am install-data install-data-am \
 	install-dvi install-dvi-am install-exec install-exec-am \
 	install-html install-html-am install-info install-info-am \
-	install-libLTLIBRARIES install-man install-pdf install-pdf-am \
-	install-ps install-ps-am install-strip installcheck \
-	installcheck-am installdirs maintainer-clean \
-	maintainer-clean-generic mostlyclean mostlyclean-compile \
-	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	tags tags-am uninstall uninstall-am uninstall-libLTLIBRARIES
+	install-libLTLIBRARIES install-man install-otherincludeHEADERS \
+	install-pdf install-pdf-am install-ps install-ps-am \
+	install-strip installcheck installcheck-am installdirs \
+	maintainer-clean maintainer-clean-generic mostlyclean \
+	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
+	pdf pdf-am ps ps-am tags tags-am uninstall uninstall-am \
+	uninstall-libLTLIBRARIES uninstall-otherincludeHEADERS
 
 .PRECIOUS: Makefile
 
