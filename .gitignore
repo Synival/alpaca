@@ -3,6 +3,7 @@ Makefile
 *.lo
 *.o
 .deps
+.DS_Store
 .libs
 /build/*
 /tmp
