@@ -9,6 +9,7 @@ autoreconf -vi
 
 echo ""
 echo "Done.  To compile and install AlPACA, execute:"
-echo "   ./configure"
+echo "   cd build"
+echo "   ../configure"
 echo "   sudo make install"
 echo ""

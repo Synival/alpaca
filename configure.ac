@@ -9,7 +9,7 @@ AC_PREREQ([2.62])
 AC_INIT(alpaca, [al_version])
 
 # AC Configuration.
-AC_CONFIG_SRCDIR([src/c/server.c])
+AC_CONFIG_SRCDIR([src/.dummy])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIRS([m4])
 
@@ -17,7 +17,7 @@ AC_CONFIG_MACRO_DIRS([m4])
 AC_PROG_LIBTOOL
 
 # Configure automake.
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([subdir-objects])
 
 # Checks for programs.
 AC_PROG_CC
@@ -35,8 +35,5 @@ AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_CHECK_FUNCS([memset select socket])
 
-AC_CONFIG_FILES([Makefile
-                 src/Makefile
-                 src/c/Makefile
-                 src/c/.obj/Makefile])
+AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

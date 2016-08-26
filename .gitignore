@@ -4,9 +4,6 @@ Makefile
 *.o
 .deps
 .libs
-/config.h
-/config.log
-/config.status
-/libtool
-/stamp-h1
+/build/*
 /tmp
+/autom4te.cache

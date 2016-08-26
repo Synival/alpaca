@@ -592,7 +592,7 @@ PACKAGE_STRING='alpaca 0.0.1'
 PACKAGE_BUGREPORT=''
 PACKAGE_URL=''
 
-ac_unique_file="src/c/server.c"
+ac_unique_file="src/.dummy"
 # Factoring default headers for most tests.
 ac_includes_default="\
 #include <stdio.h>
@@ -12790,7 +12790,7 @@ fi
 done
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile src/c/Makefile src/c/.obj/Makefile"
+ac_config_files="$ac_config_files Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -13804,9 +13804,6 @@ do
     "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
-    "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
-    "src/c/Makefile") CONFIG_FILES="$CONFIG_FILES src/c/Makefile" ;;
-    "src/c/.obj/Makefile") CONFIG_FILES="$CONFIG_FILES src/c/.obj/Makefile" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;
   esac
