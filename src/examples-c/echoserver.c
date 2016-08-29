@@ -76,7 +76,7 @@ int main (int argc, char **argv)
 {
    /* requires at least 1 parameter (port). */
    if (argc < 2) {
-      fprintf (stderr, "Usage: %s <port>\n", argv[0]);
+      fprintf (stderr, "Usage: echoserver <port>\n");
       return EINVAL;
    }
 
