@@ -188,21 +188,8 @@ int al_server_run_func (al_server_t *server)
       fd_max = AL_MAX (fd_max, c->sock_fd);
 
       /* if there's stuff to write, add to the write buffer. */
-      if (c->flags & AL_CONNECTION_WROTE) {
-         if (!(c->flags & AL_CONNECTION_WRITING)) {
-            if (server->func[AL_SERVER_FUNC_PRE_WRITE]) {
-               al_func_pre_write_t data = {
-                  .data     = c->output,
-                  .data_len = c->output_len
-               };
-               server->func[AL_SERVER_FUNC_PRE_WRITE] (server, c,
-                  AL_SERVER_FUNC_PRE_WRITE, &data);
-            }
-            c->output_max = c->output_len - c->output_pos;
-            c->flags |= AL_CONNECTION_WRITING;
-         }
+      if (al_connection_stage_output (c) >= 0)
          FD_SET (c->sock_fd, &(server->fd_out));
-      }
    }
 
    /* don't greedily lock the server while select() is waiting. */
@@ -237,7 +224,7 @@ int al_server_run_func (al_server_t *server)
          al_connection_new (server, fd, &client_addr, client_addr_size);
    }
 
-   /* check all of our connections. */
+   /* check all of our connections for input. */
    for (c = server->connection_list; c != NULL; c = c_next) {
       c_next = c->next;
 
@@ -276,8 +263,11 @@ int al_server_run_func (al_server_t *server)
                break;
          }
       }
+   }
 
-      /* can we output? */
+   /* check all of our connections for output. */
+   for (c = server->connection_list; c != NULL; c = c_next) {
+      c_next = c->next;
       if (FD_ISSET (c->sock_fd, &(server->fd_out)))
          if (al_connection_fd_write (c) < 0) {
             al_connection_free (c);

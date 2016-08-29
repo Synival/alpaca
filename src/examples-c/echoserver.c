@@ -4,22 +4,28 @@
 
 #include <alpaca/alpaca.h>
 
-int example_broadcast (al_connection_t *c, char quote, char *message)
+int example_broadcast (al_connection_t *connection, char quote, char *message)
 {
    char buf[256];
    int count;
 
+   /* for every connection sitting at a prompt, create a new line. */
+   al_connection_t *c;
+   for (c = connection->server->connection_list; c != NULL; c = c->next)
+      if (c != connection && !(c->flags & AL_CONNECTION_WROTE))
+         al_connection_write_string (c, "\r\n");
+
    /* different message depending on our quotes. */
    if (quote != '\0')
       snprintf (buf, sizeof (buf), "[%d][%s] %c%s%c\r\n",
-         c->sock_fd, c->ip_address, quote, message, quote);
+         connection->sock_fd, connection->ip_address, quote, message, quote);
    else
       snprintf (buf, sizeof (buf), "[%d][%s] %s\r\n",
-         c->sock_fd, c->ip_address, message);
+         connection->sock_fd, connection->ip_address, message);
 
    /* broadcast to the server and all clients. */
    printf ("%s", buf);
-   count = al_server_write_string (c->server, buf);
+   count = al_server_write_string (connection->server, buf);
 
    /* return the number of clients who received this message. */
    return count;
@@ -54,19 +60,34 @@ AL_SERVER_FUNC (example_read)
    /* read lines until we can't anymore. */
    char buf[256];
    while (al_read_line (buf, sizeof (buf), data)) {
+      /* skip blank lines.  record that we wrote something so the pre_write
+       * function will trigger, writing the prompt again. */
+      if (buf[0] == '\0') {
+         al_connection_wrote (connection);
+         continue;
+      }
+
       /* print a message on the server and send it to everyone. */
       example_broadcast (connection, '\'', buf);
 
       /* if our client typed 'shutdown', start closing down. */
       if (strcmp (buf, "shutdown") == 0) {
          /* TODO: this is not yet being received by all clients. */
-         al_server_write_string (connection->server, "Shutting down!\n");
+         al_server_write_string (connection->server, "-- Shutting down! --\n");
          al_server_stop (connection->server);
          return 0;
       }
    }
 
    /* return value is irrelevant. */
+   return 0;
+}
+
+AL_SERVER_FUNC (example_pre_write)
+{
+   /* if we're not quitting, write a little prompt. */
+   if (!(connection->server->flags & AL_SERVER_QUIT))
+      al_connection_write_string (connection, "> ");
    return 0;
 }
 
@@ -84,9 +105,10 @@ int main (int argc, char **argv)
 
    /* launch an alpaca server. */
    al_server_t *server = al_server_new (port, 0);
-   al_server_func_set (server, AL_SERVER_FUNC_JOIN,  example_join);
-   al_server_func_set (server, AL_SERVER_FUNC_LEAVE, example_leave);
-   al_server_func_set (server, AL_SERVER_FUNC_READ,  example_read);
+   al_server_func_set (server, AL_SERVER_FUNC_JOIN,      example_join);
+   al_server_func_set (server, AL_SERVER_FUNC_LEAVE,     example_leave);
+   al_server_func_set (server, AL_SERVER_FUNC_READ,      example_read);
+   al_server_func_set (server, AL_SERVER_FUNC_PRE_WRITE, example_pre_write);
    if (!al_server_start (server)) {
       fprintf (stderr, "Server failed to start.\n");
       return 2;

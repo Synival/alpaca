@@ -65,5 +65,6 @@ int al_connection_write (al_connection_t *c, unsigned char *buf,
 int al_connection_write_string (al_connection_t *c, char *string);
 int al_connection_write_all_string (al_server_t *server, char *string);
 int al_connection_wrote (al_connection_t *c);
+int al_connection_stage_output (al_connection_t *c);
 
 #endif

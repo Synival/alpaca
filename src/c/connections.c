@@ -58,6 +58,7 @@ int al_connection_free (al_connection_t *c)
       server->func[AL_SERVER_FUNC_LEAVE] (server, c, AL_SERVER_FUNC_LEAVE, 0);
 
    /* attempt to send remaining output. */
+   al_connection_stage_output (c);
    al_connection_fd_write (c);
 
    /* close our socket. */
@@ -92,9 +93,9 @@ int al_connection_append_buffer (al_connection_t *c, unsigned char **buf,
    /* don't allow reading while we're doing this. */
    al_server_lock (c->server);
 
-   /* how large should our buffer be? */
+   /* how large should our buffer be?  use a sensible size for starting. */
    if (*buf == NULL)
-      new_size = 1; //256;
+      new_size = 256;
    else
       new_size = *size;
    while (new_size < *len + isize + 1)
@@ -125,7 +126,7 @@ int al_connection_fetch_buffer (al_connection_t *c, unsigned char **buf,
 {
    size_t input_len;
 
-   /* if we don't have a buffer, do nothin'. */
+   /* if we don't have a buffer, don't do anything. */
    if (output == NULL || osize == 0)
       return 0;
 
@@ -145,8 +146,8 @@ int al_connection_fetch_buffer (al_connection_t *c, unsigned char **buf,
       al_server_unlock (c->server);
       return osize;
    }
+   /* looks like we're reading everything! */
    else {
-      /* we're reading everything! */
       memcpy (output, *buf + *pos, sizeof (unsigned char) * input_len);
 
       /* reset our buffer and return the number of bytes we read. */
@@ -159,6 +160,7 @@ int al_connection_fetch_buffer (al_connection_t *c, unsigned char **buf,
 
 int al_connection_read (al_connection_t *c, unsigned char *buf, size_t size)
 {
+   /* read from our auto-sizing input buffer. */
    return al_connection_fetch_buffer (c, &(c->input), &(c->input_size),
       &(c->input_len), &(c->input_pos), buf, size);
 }
@@ -189,15 +191,14 @@ int al_connection_fd_read (al_connection_t *c)
 
 int al_connection_fd_write (al_connection_t *c)
 {
-   size_t bytes, max;
-   int res;
-
-   /* attempt to write. */
-   bytes = c->output_len - c->output_pos;
-   max = c->output_max < bytes ? c->output_max : bytes;
-
+   /* output at most 'c->output_max' bytes.  bail if there's no work for us. */
+   size_t bytes = c->output_len - c->output_pos,
+          max   = c->output_max < bytes ? c->output_max : bytes;
    if (max <= 0)
       return 0;
+
+   /* attempt to write to the socket. */
+   int res;
    if ((res = write (c->sock_fd, c->output + c->output_pos, bytes)) <= 0) {
       AL_ERROR ("Couldn't write %ld bytes to client [%d].\n", bytes,
                 c->sock_fd);
@@ -210,12 +211,14 @@ int al_connection_fd_write (al_connection_t *c)
       c->output_pos = 0;
       c->flags &= ~AL_CONNECTION_WROTE;
    }
-   /* or just move forward a little bit. */
+   /* otherwise, just move forward a little bit. */
    else
       c->output_pos += bytes;
 
    /* allow AL_SERVER_FUNC_PRE_WRITE to run again once output_max
-    * reaches zero. */
+    * reaches zero.  this way, if we've queued a massive amount of data for
+    * output and, while sending it out, the output buffer grows larger,
+    * the pre-write function will still be executed in its original place. */
    c->output_max -= res;
    if (c->output_max <= 0)
       c->flags &= ~AL_CONNECTION_WRITING;
@@ -226,8 +229,9 @@ int al_connection_fd_write (al_connection_t *c)
 int al_connection_write (al_connection_t *c, unsigned char *buf,
    size_t size)
 {
-   int res;
-   res = al_connection_append_buffer (c, &(c->output), &(c->output_size),
+   if (size == 0)
+      return 0;
+   int res = al_connection_append_buffer (c, &(c->output), &(c->output_size),
       &(c->output_len), &(c->input_pos), buf, size);
    al_connection_wrote (c);
    return res;
@@ -235,13 +239,41 @@ int al_connection_write (al_connection_t *c, unsigned char *buf,
 
 int al_connection_write_string (al_connection_t *c, char *string)
 {
+   /* send a string as unsigned bytes. */
    return al_connection_write (c, (unsigned char *) string,
                                strlen (string));
 }
 
 int al_connection_wrote (al_connection_t *c)
 {
+   /* mark that this connection is awaiting al_connection_stage_output(). */
    c->flags |= AL_CONNECTION_WROTE;
    al_server_interrupt (c->server);
    return 1;
+}
+
+int al_connection_stage_output (al_connection_t *c)
+{
+   /* don't do anything if it was never indicated that there's output to
+    * write... */
+   if (!(c->flags & AL_CONNECTION_WROTE))
+      return -1;
+   /* ...or if this function has already been called before writing. */
+   else if (c->flags & AL_CONNECTION_WRITING)
+      return -1;
+
+   /* call the 'pre_write' function if available. */
+   if (c->server->func[AL_SERVER_FUNC_PRE_WRITE]) {
+      al_func_pre_write_t data = {
+         .data     = c->output,
+         .data_len = c->output_len
+      };
+      c->server->func[AL_SERVER_FUNC_PRE_WRITE] (c->server, c,
+         AL_SERVER_FUNC_PRE_WRITE, &data);
+   }
+
+   /* make that there's data to write out and record/return the byte count. */
+   c->flags |= AL_CONNECTION_WRITING;
+   c->output_max = c->output_len - c->output_pos;
+   return c->output_max;
 }
