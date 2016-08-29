@@ -188,7 +188,8 @@ int al_server_run_func (al_server_t *server)
       fd_max = AL_MAX (fd_max, c->sock_fd);
 
       /* if there's stuff to write, add to the write buffer. */
-      if (al_connection_stage_output (c) >= 0)
+      al_connection_stage_output (c);
+      if (c->flags & AL_CONNECTION_WRITING)
          FD_SET (c->sock_fd, &(server->fd_out));
    }
 

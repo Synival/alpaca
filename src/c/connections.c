@@ -194,7 +194,7 @@ int al_connection_fd_write (al_connection_t *c)
    /* output at most 'c->output_max' bytes.  bail if there's no work for us. */
    size_t bytes = c->output_len - c->output_pos,
           max   = c->output_max < bytes ? c->output_max : bytes;
-   if (max <= 0)
+   if (max <= 0 || !(c->flags & AL_CONNECTION_WRITING))
       return 0;
 
    /* attempt to write to the socket. */
