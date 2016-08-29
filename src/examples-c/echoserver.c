@@ -1,4 +1,3 @@
-#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -76,7 +75,7 @@ int main (int argc, char **argv)
    /* requires at least 1 parameter (port). */
    if (argc < 2) {
       fprintf (stderr, "Usage: echoserver <port>\n");
-      return EINVAL;
+      return 1;
    }
 
    /* get a port.  default to 4096. */
@@ -90,7 +89,7 @@ int main (int argc, char **argv)
    al_server_func_set (server, AL_SERVER_FUNC_READ,  example_read);
    if (!al_server_start (server)) {
       fprintf (stderr, "Server failed to start.\n");
-      return EINVAL;
+      return 2;
    }
    printf (
 "=========================================================================\n"
