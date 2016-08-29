@@ -32,6 +32,21 @@ struct _al_connection_t {
    /* link to server. */
    al_server_t *server;
    al_connection_t *prev, *next;
+
+   /* identifying data. */
+   char *ip_address;
+};
+
+/* data sent via AL_SERVER_READ_FUNC. */
+struct _al_func_read_t {
+   unsigned char *data, *new_data;
+   size_t data_len, new_data_len, bytes_used;
+};
+
+/* data sent via AL_SERVER_PRE_WRITE_FUNC. */
+struct _al_func_pre_write_t {
+   unsigned char *data;
+   size_t data_len;
 };
 
 /* functions for connection management. */
@@ -47,8 +62,8 @@ int al_connection_fd_read (al_connection_t *c);
 int al_connection_fd_write (al_connection_t *c);
 int al_connection_write (al_connection_t *c, unsigned char *buf,
    size_t size);
-int al_connection_write_all (al_server_t *server, unsigned char *buf,
-   size_t size);
+int al_connection_write_string (al_connection_t *c, char *string);
+int al_connection_write_all_string (al_server_t *server, char *string);
 int al_connection_wrote (al_connection_t *c);
 
 #endif

@@ -29,14 +29,16 @@
 
 /* type definitions. */
 typedef unsigned long int al_flags_t;
-typedef struct _al_server_t     al_server_t;
-typedef struct _al_connection_t al_connection_t;
-typedef struct _al_mutex_t      al_mutex_t;
+typedef struct _al_server_t         al_server_t;
+typedef struct _al_connection_t     al_connection_t;
+typedef struct _al_mutex_t          al_mutex_t;
+typedef struct _al_func_read_t      al_func_read_t;
+typedef struct _al_func_pre_write_t al_func_pre_write_t;
 
 /* function macros and typedefs. */
 #define AL_SERVER_FUNC(x) \
-   int x (al_server_t *server, al_connection_t *connection, \
-          void *data, size_t data_size)
+   int x (al_server_t *server, al_connection_t *connection, int func, \
+          void *data)
 typedef AL_SERVER_FUNC(al_server_func);
 
 #endif

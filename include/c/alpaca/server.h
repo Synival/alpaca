@@ -68,5 +68,7 @@ int al_server_func_read (al_server_t *server, al_server_func *func);
 int al_server_func_join (al_server_t *server, al_server_func *func);
 int al_server_func_leave (al_server_t *server, al_server_func *func);
 int al_server_func_set (al_server_t *server, int ref, al_server_func *func);
+int al_server_write_all (al_server_t *server, unsigned char *buf, size_t size);
+int al_server_write_string (al_server_t *server, char *string);
 
 #endif

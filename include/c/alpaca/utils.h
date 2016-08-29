@@ -5,6 +5,8 @@
 #ifndef __ALPACA_C_UTILS_H
 #define __ALPACA_C_UTILS_H
 
+#include "config.h"
+
 #define AL_PRINTF  printf
 #define AL_FPRINTF fprintf
 #define AL_ERROR(...) \
@@ -14,5 +16,9 @@
    (((x) > (y)) ? (x) : (y))
 #define AL_MIN(x, y) \
    (((x) < (y)) ? (x) : (y))
+
+#ifndef HAVE_STRDUP
+char *strdup (const char *str);
+#endif
 
 #endif

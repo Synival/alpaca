@@ -2,6 +2,7 @@
  * -------------
  * connection management for servers. */
 
+#include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,11 +25,17 @@ al_connection_t *al_connection_new (al_server_t *server, int fd,
       new->addr_size = addr_size;
    }
 
+   /* record IP address. */
+   char address[INET_ADDRSTRLEN];
+   inet_ntop (AF_INET, &(new->addr.sin_addr), address, INET_ADDRSTRLEN);
+   new->ip_address = strdup (address);
+
    /* link to our server. */
    al_server_lock (server);
    AL_LL_LINK_FRONT (new, server, prev, next, server, connection_list);
    if (server->func[AL_SERVER_FUNC_JOIN])
-      if (!server->func[AL_SERVER_FUNC_JOIN] (server, new, NULL, 0)) {
+      if (!server->func[AL_SERVER_FUNC_JOIN] (server, new,
+           AL_SERVER_FUNC_JOIN, NULL)) {
          al_connection_free (new);
          return NULL;
       }
@@ -48,13 +55,21 @@ int al_connection_free (al_connection_t *c)
 
    /* function for leaving? */
    if (server->func[AL_SERVER_FUNC_LEAVE])
-      server->func[AL_SERVER_FUNC_LEAVE] (server, c, NULL, 0);
+      server->func[AL_SERVER_FUNC_LEAVE] (server, c, AL_SERVER_FUNC_LEAVE, 0);
 
    /* attempt to send remaining output. */
    al_connection_fd_write (c);
 
    /* close our socket. */
    socket_close (c->sock_fd);
+
+   /* free all other allocated memory. */
+   if (c->input)
+      free (c->input);
+   if (c->output)
+      free (c->output);
+   if (c->ip_address)
+      free (c->ip_address);
 
    /* unlink. */
    AL_LL_UNLINK (c, prev, next, c->server, connection_list);
@@ -218,21 +233,10 @@ int al_connection_write (al_connection_t *c, unsigned char *buf,
    return res;
 }
 
-int al_connection_write_all (al_server_t *server, unsigned char *buf,
-   size_t size)
+int al_connection_write_string (al_connection_t *c, char *string)
 {
-   al_connection_t *c;
-   int count;
-
-   /* connection_write() to everyone! */
-   al_server_lock (server);
-   count = 0;
-   for (c = server->connection_list; c != NULL; c = c->next)
-      count += al_connection_write (c, buf, size);
-   al_server_unlock (server);
-
-   /* return the number of connections written to. */
-   return count;
+   return al_connection_write (c, (unsigned char *) string,
+                               strlen (string));
 }
 
 int al_connection_wrote (al_connection_t *c)

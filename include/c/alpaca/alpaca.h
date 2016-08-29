@@ -6,6 +6,7 @@
 #define __ALPACA_C_ALPACA_H
 
 #include "connections.h"
+#include "read.h"
 #include "server.h"
 
 #endif

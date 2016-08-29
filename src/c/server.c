@@ -158,7 +158,7 @@ int al_server_run_func (al_server_t *server)
    al_connection_t *c, *c_next;
    struct sockaddr_in client_addr;
    socklen_t client_addr_size;
-   int fd, fd_max, res, used;
+   int fd, fd_max, res, bytes_read;
 
    /* before we wait, make sure our data is sane. */
    al_server_lock (server);
@@ -190,9 +190,14 @@ int al_server_run_func (al_server_t *server)
       /* if there's stuff to write, add to the write buffer. */
       if (c->flags & AL_CONNECTION_WROTE) {
          if (!(c->flags & AL_CONNECTION_WRITING)) {
-            if (server->func[AL_SERVER_FUNC_PRE_WRITE])
+            if (server->func[AL_SERVER_FUNC_PRE_WRITE]) {
+               al_func_pre_write_t data = {
+                  .data     = c->output,
+                  .data_len = c->output_len
+               };
                server->func[AL_SERVER_FUNC_PRE_WRITE] (server, c,
-                  c->output, c->output_len);
+                  AL_SERVER_FUNC_PRE_WRITE, &data);
+            }
             c->output_max = c->output_len - c->output_pos;
             c->flags |= AL_CONNECTION_WRITING;
          }
@@ -244,20 +249,29 @@ int al_server_run_func (al_server_t *server)
 
       /* can we input? */
       if (FD_ISSET (c->sock_fd, &(server->fd_in))) {
-         if (al_connection_fd_read (c) < 0) {
+         if ((bytes_read = al_connection_fd_read (c)) < 0) {
             al_connection_free (c);
             continue;
          }
          while (c->input_len > c->input_pos &&
                 server->func[AL_SERVER_FUNC_READ]) {
-            used = server->func[AL_SERVER_FUNC_READ] (server, c,
-               c->input + c->input_pos, c->input_len - c->input_pos);
-            if (used >= c->input_len - c->input_pos) {
+            al_func_read_t data = {
+               .data         = c->input + c->input_pos,
+               .data_len     = c->input_len - c->input_pos,
+               .new_data     = c->input + c->input_len - bytes_read,
+               .new_data_len = bytes_read,
+               .bytes_used   = 0
+            };
+            server->func[AL_SERVER_FUNC_READ] (server, c,
+               AL_SERVER_FUNC_READ, &data);
+            if (data.bytes_used >= c->input_len - c->input_pos) {
                c->input_len = 0;
                c->input_pos = 0;
             }
-            else if (used >= 1)
-               c->input_pos += used;
+            else if (data.bytes_used >= 1) {
+               c->input_pos += data.bytes_used;
+               bytes_read    = data.new_data_len;
+            }
             else
                break;
          }
@@ -390,4 +404,25 @@ int al_server_func_set (al_server_t *server, int ref, al_server_func *func)
    server->func[ref] = func;
    al_server_unlock (server);
    return 1;
+}
+
+int al_server_write (al_server_t *server, unsigned char *buf, size_t size)
+{
+   al_connection_t *c;
+   int count;
+
+   /* connection_write() to everyone! */
+   al_server_lock (server);
+   count = 0;
+   for (c = server->connection_list; c != NULL; c = c->next)
+      count += al_connection_write (c, buf, size);
+   al_server_unlock (server);
+
+   /* return the number of connections written to. */
+   return count;
+}
+
+int al_server_write_string (al_server_t *server, char *string)
+{
+   return al_server_write (server, (unsigned char *) string, strlen (string));
 }

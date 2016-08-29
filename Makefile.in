@@ -15,6 +15,7 @@
 @SET_MAKE@
 
 
+
 VPATH = @srcdir@
 am__is_gnu_make = { \
   if test -z '$(MAKELEVEL)'; then \
@@ -89,6 +90,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+bin_PROGRAMS = echoserver$(EXEEXT)
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
@@ -133,12 +135,14 @@ am__uninstall_files_from_dir = { \
     || { echo " ( cd '$$dir' && rm -f" $$files ")"; \
          $(am__cd) "$$dir" && rm -f $$files; }; \
   }
-am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(otherincludedir)"
+am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" \
+	"$(DESTDIR)$(otherincludedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libalpaca_la_LIBADD =
 am__dirstamp = $(am__leading_dot)dirstamp
 am_libalpaca_la_OBJECTS = src/c/libalpaca_la-connections.lo \
-	src/c/libalpaca_la-mutex.lo src/c/libalpaca_la-server.lo
+	src/c/libalpaca_la-mutex.lo src/c/libalpaca_la-read.lo \
+	src/c/libalpaca_la-server.lo src/c/libalpaca_la-utils.lo
 libalpaca_la_OBJECTS = $(am_libalpaca_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -147,6 +151,14 @@ am__v_lt_1 =
 libalpaca_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libalpaca_la_CFLAGS) \
 	$(CFLAGS) $(libalpaca_la_LDFLAGS) $(LDFLAGS) -o $@
+PROGRAMS = $(bin_PROGRAMS)
+am_echoserver_OBJECTS =  \
+	src/examples-c/echoserver-echoserver.$(OBJEXT)
+echoserver_OBJECTS = $(am_echoserver_OBJECTS)
+echoserver_LDADD = $(LDADD)
+echoserver_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(echoserver_CFLAGS) \
+	$(CFLAGS) $(echoserver_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -181,8 +193,8 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(libalpaca_la_SOURCES)
-DIST_SOURCES = $(libalpaca_la_SOURCES)
+SOURCES = $(libalpaca_la_SOURCES) $(echoserver_SOURCES)
+DIST_SOURCES = $(libalpaca_la_SOURCES) $(echoserver_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -363,7 +375,9 @@ libalpaca_la_CFLAGS = \
 libalpaca_la_SOURCES = \
    src/c/connections.c \
    src/c/mutex.c \
-   src/c/server.c
+   src/c/read.c \
+   src/c/server.c \
+   src/c/utils.c
 
 otherincludedir = \
    $(includedir)/alpaca
@@ -374,8 +388,18 @@ otherinclude_HEADERS = \
    include/c/alpaca/connections.h \
    include/c/alpaca/llist.h \
    include/c/alpaca/mutex.h \
+   include/c/alpaca/read.h \
    include/c/alpaca/server.h \
    include/c/alpaca/utils.h
+
+echoserver_SOURCES = \
+   src/examples-c/echoserver.c
+
+echoserver_CFLAGS = \
+   -I$(top_srcdir)/include/c -Wall -std=c99
+
+echoserver_LDFLAGS = \
+   -L../lib -lalpaca -lpthread
 
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -475,23 +499,93 @@ src/c/libalpaca_la-connections.lo: src/c/$(am__dirstamp) \
 	src/c/$(DEPDIR)/$(am__dirstamp)
 src/c/libalpaca_la-mutex.lo: src/c/$(am__dirstamp) \
 	src/c/$(DEPDIR)/$(am__dirstamp)
+src/c/libalpaca_la-read.lo: src/c/$(am__dirstamp) \
+	src/c/$(DEPDIR)/$(am__dirstamp)
 src/c/libalpaca_la-server.lo: src/c/$(am__dirstamp) \
+	src/c/$(DEPDIR)/$(am__dirstamp)
+src/c/libalpaca_la-utils.lo: src/c/$(am__dirstamp) \
 	src/c/$(DEPDIR)/$(am__dirstamp)
 
 libalpaca.la: $(libalpaca_la_OBJECTS) $(libalpaca_la_DEPENDENCIES) $(EXTRA_libalpaca_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(libalpaca_la_LINK) -rpath $(libdir) $(libalpaca_la_OBJECTS) $(libalpaca_la_LIBADD) $(LIBS)
+install-binPROGRAMS: $(bin_PROGRAMS)
+	@$(NORMAL_INSTALL)
+	@list='$(bin_PROGRAMS)'; test -n "$(bindir)" || list=; \
+	if test -n "$$list"; then \
+	  echo " $(MKDIR_P) '$(DESTDIR)$(bindir)'"; \
+	  $(MKDIR_P) "$(DESTDIR)$(bindir)" || exit 1; \
+	fi; \
+	for p in $$list; do echo "$$p $$p"; done | \
+	sed 's/$(EXEEXT)$$//' | \
+	while read p p1; do if test -f $$p \
+	 || test -f $$p1 \
+	  ; then echo "$$p"; echo "$$p"; else :; fi; \
+	done | \
+	sed -e 'p;s,.*/,,;n;h' \
+	    -e 's|.*|.|' \
+	    -e 'p;x;s,.*/,,;s/$(EXEEXT)$$//;$(transform);s/$$/$(EXEEXT)/' | \
+	sed 'N;N;N;s,\n, ,g' | \
+	$(AWK) 'BEGIN { files["."] = ""; dirs["."] = 1 } \
+	  { d=$$3; if (dirs[d] != 1) { print "d", d; dirs[d] = 1 } \
+	    if ($$2 == $$4) files[d] = files[d] " " $$1; \
+	    else { print "f", $$3 "/" $$4, $$1; } } \
+	  END { for (d in files) print "f", d, files[d] }' | \
+	while read type dir files; do \
+	    if test "$$dir" = .; then dir=; else dir=/$$dir; fi; \
+	    test -z "$$files" || { \
+	    echo " $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL_PROGRAM) $$files '$(DESTDIR)$(bindir)$$dir'"; \
+	    $(INSTALL_PROGRAM_ENV) $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL_PROGRAM) $$files "$(DESTDIR)$(bindir)$$dir" || exit $$?; \
+	    } \
+	; done
+
+uninstall-binPROGRAMS:
+	@$(NORMAL_UNINSTALL)
+	@list='$(bin_PROGRAMS)'; test -n "$(bindir)" || list=; \
+	files=`for p in $$list; do echo "$$p"; done | \
+	  sed -e 'h;s,^.*/,,;s/$(EXEEXT)$$//;$(transform)' \
+	      -e 's/$$/$(EXEEXT)/' \
+	`; \
+	test -n "$$list" || exit 0; \
+	echo " ( cd '$(DESTDIR)$(bindir)' && rm -f" $$files ")"; \
+	cd "$(DESTDIR)$(bindir)" && rm -f $$files
+
+clean-binPROGRAMS:
+	@list='$(bin_PROGRAMS)'; test -n "$$list" || exit 0; \
+	echo " rm -f" $$list; \
+	rm -f $$list || exit $$?; \
+	test -n "$(EXEEXT)" || exit 0; \
+	list=`for p in $$list; do echo "$$p"; done | sed 's/$(EXEEXT)$$//'`; \
+	echo " rm -f" $$list; \
+	rm -f $$list
+src/examples-c/$(am__dirstamp):
+	@$(MKDIR_P) src/examples-c
+	@: > src/examples-c/$(am__dirstamp)
+src/examples-c/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) src/examples-c/$(DEPDIR)
+	@: > src/examples-c/$(DEPDIR)/$(am__dirstamp)
+src/examples-c/echoserver-echoserver.$(OBJEXT):  \
+	src/examples-c/$(am__dirstamp) \
+	src/examples-c/$(DEPDIR)/$(am__dirstamp)
+
+echoserver$(EXEEXT): $(echoserver_OBJECTS) $(echoserver_DEPENDENCIES) $(EXTRA_echoserver_DEPENDENCIES) 
+	@rm -f echoserver$(EXEEXT)
+	$(AM_V_CCLD)$(echoserver_LINK) $(echoserver_OBJECTS) $(echoserver_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 	-rm -f src/c/*.$(OBJEXT)
 	-rm -f src/c/*.lo
+	-rm -f src/examples-c/*.$(OBJEXT)
 
 distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-connections.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-mutex.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-read.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-server.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-utils.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/examples-c/$(DEPDIR)/echoserver-echoserver.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -531,12 +625,40 @@ src/c/libalpaca_la-mutex.lo: src/c/mutex.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -c -o src/c/libalpaca_la-mutex.lo `test -f 'src/c/mutex.c' || echo '$(srcdir)/'`src/c/mutex.c
 
+src/c/libalpaca_la-read.lo: src/c/read.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -MT src/c/libalpaca_la-read.lo -MD -MP -MF src/c/$(DEPDIR)/libalpaca_la-read.Tpo -c -o src/c/libalpaca_la-read.lo `test -f 'src/c/read.c' || echo '$(srcdir)/'`src/c/read.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/c/$(DEPDIR)/libalpaca_la-read.Tpo src/c/$(DEPDIR)/libalpaca_la-read.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/c/read.c' object='src/c/libalpaca_la-read.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -c -o src/c/libalpaca_la-read.lo `test -f 'src/c/read.c' || echo '$(srcdir)/'`src/c/read.c
+
 src/c/libalpaca_la-server.lo: src/c/server.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -MT src/c/libalpaca_la-server.lo -MD -MP -MF src/c/$(DEPDIR)/libalpaca_la-server.Tpo -c -o src/c/libalpaca_la-server.lo `test -f 'src/c/server.c' || echo '$(srcdir)/'`src/c/server.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/c/$(DEPDIR)/libalpaca_la-server.Tpo src/c/$(DEPDIR)/libalpaca_la-server.Plo
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/c/server.c' object='src/c/libalpaca_la-server.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -c -o src/c/libalpaca_la-server.lo `test -f 'src/c/server.c' || echo '$(srcdir)/'`src/c/server.c
+
+src/c/libalpaca_la-utils.lo: src/c/utils.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -MT src/c/libalpaca_la-utils.lo -MD -MP -MF src/c/$(DEPDIR)/libalpaca_la-utils.Tpo -c -o src/c/libalpaca_la-utils.lo `test -f 'src/c/utils.c' || echo '$(srcdir)/'`src/c/utils.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/c/$(DEPDIR)/libalpaca_la-utils.Tpo src/c/$(DEPDIR)/libalpaca_la-utils.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/c/utils.c' object='src/c/libalpaca_la-utils.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -c -o src/c/libalpaca_la-utils.lo `test -f 'src/c/utils.c' || echo '$(srcdir)/'`src/c/utils.c
+
+src/examples-c/echoserver-echoserver.o: src/examples-c/echoserver.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(echoserver_CFLAGS) $(CFLAGS) -MT src/examples-c/echoserver-echoserver.o -MD -MP -MF src/examples-c/$(DEPDIR)/echoserver-echoserver.Tpo -c -o src/examples-c/echoserver-echoserver.o `test -f 'src/examples-c/echoserver.c' || echo '$(srcdir)/'`src/examples-c/echoserver.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/examples-c/$(DEPDIR)/echoserver-echoserver.Tpo src/examples-c/$(DEPDIR)/echoserver-echoserver.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/examples-c/echoserver.c' object='src/examples-c/echoserver-echoserver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(echoserver_CFLAGS) $(CFLAGS) -c -o src/examples-c/echoserver-echoserver.o `test -f 'src/examples-c/echoserver.c' || echo '$(srcdir)/'`src/examples-c/echoserver.c
+
+src/examples-c/echoserver-echoserver.obj: src/examples-c/echoserver.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(echoserver_CFLAGS) $(CFLAGS) -MT src/examples-c/echoserver-echoserver.obj -MD -MP -MF src/examples-c/$(DEPDIR)/echoserver-echoserver.Tpo -c -o src/examples-c/echoserver-echoserver.obj `if test -f 'src/examples-c/echoserver.c'; then $(CYGPATH_W) 'src/examples-c/echoserver.c'; else $(CYGPATH_W) '$(srcdir)/src/examples-c/echoserver.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/examples-c/$(DEPDIR)/echoserver-echoserver.Tpo src/examples-c/$(DEPDIR)/echoserver-echoserver.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/examples-c/echoserver.c' object='src/examples-c/echoserver-echoserver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(echoserver_CFLAGS) $(CFLAGS) -c -o src/examples-c/echoserver-echoserver.obj `if test -f 'src/examples-c/echoserver.c'; then $(CYGPATH_W) 'src/examples-c/echoserver.c'; else $(CYGPATH_W) '$(srcdir)/src/examples-c/echoserver.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -793,9 +915,11 @@ distcleancheck: distclean
 	       exit 1; } >&2
 check-am: all-am
 check: check-am
-all-am: Makefile $(LTLIBRARIES) $(HEADERS) config.h
+all-am: Makefile $(LTLIBRARIES) $(PROGRAMS) $(HEADERS) config.h
+install-binPROGRAMS: install-libLTLIBRARIES
+
 installdirs:
-	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(otherincludedir)"; do \
+	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(bindir)" "$(DESTDIR)$(otherincludedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
 install: install-am
@@ -826,18 +950,20 @@ distclean-generic:
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
 	-rm -f src/c/$(DEPDIR)/$(am__dirstamp)
 	-rm -f src/c/$(am__dirstamp)
+	-rm -f src/examples-c/$(DEPDIR)/$(am__dirstamp)
+	-rm -f src/examples-c/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
 clean: clean-am
 
-clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
-	mostlyclean-am
+clean-am: clean-binPROGRAMS clean-generic clean-libLTLIBRARIES \
+	clean-libtool mostlyclean-am
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
-	-rm -rf src/c/$(DEPDIR)
+	-rm -rf src/c/$(DEPDIR) src/examples-c/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-hdr distclean-libtool distclean-tags
@@ -860,7 +986,7 @@ install-dvi: install-dvi-am
 
 install-dvi-am:
 
-install-exec-am: install-libLTLIBRARIES
+install-exec-am: install-binPROGRAMS install-libLTLIBRARIES
 
 install-html: install-html-am
 
@@ -885,7 +1011,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf $(top_srcdir)/autom4te.cache
-	-rm -rf src/c/$(DEPDIR)
+	-rm -rf src/c/$(DEPDIR) src/examples-c/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
@@ -902,26 +1028,29 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-libLTLIBRARIES uninstall-otherincludeHEADERS
+uninstall-am: uninstall-binPROGRAMS uninstall-libLTLIBRARIES \
+	uninstall-otherincludeHEADERS
 
 .MAKE: all install-am install-strip
 
 .PHONY: CTAGS GTAGS TAGS all all-am am--refresh check check-am clean \
-	clean-cscope clean-generic clean-libLTLIBRARIES clean-libtool \
-	cscope cscopelist-am ctags ctags-am dist dist-all dist-bzip2 \
-	dist-gzip dist-lzip dist-shar dist-tarZ dist-xz dist-zip \
-	distcheck distclean distclean-compile distclean-generic \
-	distclean-hdr distclean-libtool distclean-tags distcleancheck \
-	distdir distuninstallcheck dvi dvi-am html html-am info \
-	info-am install install-am install-data install-data-am \
-	install-dvi install-dvi-am install-exec install-exec-am \
-	install-html install-html-am install-info install-info-am \
-	install-libLTLIBRARIES install-man install-otherincludeHEADERS \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic mostlyclean-libtool \
-	pdf pdf-am ps ps-am tags tags-am uninstall uninstall-am \
+	clean-binPROGRAMS clean-cscope clean-generic \
+	clean-libLTLIBRARIES clean-libtool cscope cscopelist-am ctags \
+	ctags-am dist dist-all dist-bzip2 dist-gzip dist-lzip \
+	dist-shar dist-tarZ dist-xz dist-zip distcheck distclean \
+	distclean-compile distclean-generic distclean-hdr \
+	distclean-libtool distclean-tags distcleancheck distdir \
+	distuninstallcheck dvi dvi-am html html-am info info-am \
+	install install-am install-binPROGRAMS install-data \
+	install-data-am install-dvi install-dvi-am install-exec \
+	install-exec-am install-html install-html-am install-info \
+	install-info-am install-libLTLIBRARIES install-man \
+	install-otherincludeHEADERS install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
+	tags tags-am uninstall uninstall-am uninstall-binPROGRAMS \
 	uninstall-libLTLIBRARIES uninstall-otherincludeHEADERS
 
 .PRECIOUS: Makefile
