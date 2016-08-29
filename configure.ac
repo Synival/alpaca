@@ -17,7 +17,7 @@ AC_CONFIG_MACRO_DIRS([m4])
 AC_PROG_LIBTOOL
 
 # Configure automake.
-AM_INIT_AUTOMAKE([subdir-objects])
+AM_INIT_AUTOMAKE([subdir-objects 1.14])
 
 # Checks for programs.
 AC_PROG_CC
