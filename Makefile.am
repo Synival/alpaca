@@ -23,7 +23,7 @@ otherinclude_HEADERS = \
    include/c/alpaca/server.h \
    include/c/alpaca/utils.h
 
-bin_PROGRAMS = echoserver
+noinst_PROGRAMS = echoserver
 echoserver_SOURCES = \
    src/examples-c/echoserver.c
 echoserver_CFLAGS = \
