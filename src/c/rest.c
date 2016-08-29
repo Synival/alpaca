@@ -12,10 +12,13 @@
 int al_rest_init (al_server_t *server)
 {
    /* don't initialize if already initialized. */
-   if (al_module_get (&(server->module_list), "rest")) {
+   if (al_server_module_get (server, "rest")) {
       AL_ERROR ("al_rest_init(): REST module already initialized.\n");
       return 0;
    }
+
+   /* mark REST services as 'on'. */
+   server->flags |= AL_SERVER_REST;
 
    /* create our module and set our own server function hooks. */
    al_server_module_new (server, "rest", NULL, 0, NULL);

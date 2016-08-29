@@ -24,8 +24,7 @@ al_server_t *al_server_new (int port, al_flags_t flags)
 
    /* create a mostly-empty structure with some simple settings. */
    new = calloc (1, sizeof (al_server_t));
-   new->port  = port;
-   new->flags = flags;
+   new->port = port;
 
    /* create a mutex for our running thread. */
    new->mutex = al_mutex_new ();
