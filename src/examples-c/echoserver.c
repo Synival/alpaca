@@ -59,7 +59,7 @@ AL_SERVER_FUNC (example_read)
 {
    /* read lines until we can't anymore. */
    char buf[256];
-   while (al_read_line (buf, sizeof (buf), data)) {
+   while (al_read_line (buf, sizeof (buf), arg)) {
       /* skip blank lines.  record that we wrote something so the pre_write
        * function will trigger, writing the prompt again. */
       if (buf[0] == '\0') {
@@ -86,7 +86,7 @@ AL_SERVER_FUNC (example_read)
 AL_SERVER_FUNC (example_pre_write)
 {
    /* if we're not quitting, write a little prompt. */
-   if (!(connection->server->flags & AL_SERVER_QUIT))
+   if (!al_server_is_quitting (connection->server))
       al_connection_write_string (connection, "> ");
    return 0;
 }

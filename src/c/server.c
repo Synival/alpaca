@@ -12,7 +12,9 @@
 #include <pthread.h>
 
 #include "alpaca/connections.h"
+#include "alpaca/modules.h"
 #include "alpaca/mutex.h"
+#include "alpaca/rest.h"
 
 #include "alpaca/server.h"
 
@@ -20,21 +22,28 @@ al_server_t *al_server_new (int port, al_flags_t flags)
 {
    al_server_t *new;
 
-   /* create an empty structure. */
+   /* create a mostly-empty structure with some simple settings. */
    new = calloc (1, sizeof (al_server_t));
-   new->port = port;
+   new->port  = port;
+   new->flags = flags;
 
    /* create a mutex for our running thread. */
    new->mutex = al_mutex_new ();
+
+   /* is this a RESTful service? */
+   if (flags & AL_SERVER_REST)
+      al_rest_init (new);
 
    /* we did it! */
    return new;
 }
 
 int al_server_is_open (al_server_t *server)
-   { return (server->flags & AL_SERVER_OPEN) ? 1 : 0; }
+   { return (server->state & AL_SERVER_STATE_OPEN) ? 1 : 0; }
 int al_server_is_running (al_server_t *server)
-   { return (server->flags & AL_SERVER_RUNNING) ? 1 : 0; }
+   { return (server->state & AL_SERVER_STATE_RUNNING) ? 1 : 0; }
+int al_server_is_quitting (al_server_t *server)
+   { return (server->state & AL_SERVER_STATE_QUIT) ? 1 : 0; }
 
 int al_server_lock (al_server_t *server)
 {
@@ -74,14 +83,14 @@ int al_server_close (al_server_t *server)
    socket_close (server->sock_fd);
 
    /* close pipe. */
-   if (server->flags & AL_SERVER_PIPE) {
-      server->flags &= ~AL_SERVER_PIPE;
+   if (server->state & AL_SERVER_STATE_PIPE) {
+      server->state &= ~AL_SERVER_STATE_PIPE;
       close (server->pipe_fd[0]);
       close (server->pipe_fd[1]);
    }
 
-   /* remove AL_SERVER_OPEN flag and return success. */
-   server->flags &= ~AL_SERVER_OPEN;
+   /* remove AL_SERVER_STATE_OPEN flag and return success. */
+   server->state &= ~AL_SERVER_STATE_OPEN;
    al_server_unlock (server);
    return 1;
 }
@@ -142,11 +151,11 @@ int al_server_open (al_server_t *server)
       }
 
       /* remember that we have a pipe. */
-      server->flags |= AL_SERVER_PIPE;
+      server->state |= AL_SERVER_STATE_PIPE;
    }
 
    /* set flags for our server. */
-   server->flags |= AL_SERVER_OPEN;
+   server->state |= AL_SERVER_STATE_OPEN;
    server->sock_fd = fd;
 
    /* return success. */
@@ -176,7 +185,7 @@ int al_server_run_func (al_server_t *server)
    fd_max = server->sock_fd;
 
    /* do we have a pipe?  read from it. */
-   if (server->flags & AL_SERVER_PIPE) {
+   if (server->state & AL_SERVER_STATE_PIPE) {
       FD_SET (server->pipe_fd[0], &(server->fd_in));
       fd_max = AL_MAX (fd_max, server->pipe_fd[0]);
    }
@@ -201,7 +210,7 @@ int al_server_run_func (al_server_t *server)
                &(server->fd_other), NULL)) == SOCKET_ERROR) {
       if (errno != EINTR)
          AL_ERROR ("select() error: %d\n", errno);
-      server->flags |= AL_SERVER_QUIT;
+      server->state |= AL_SERVER_STATE_QUIT;
       return 0;
    }
 
@@ -209,7 +218,7 @@ int al_server_run_func (al_server_t *server)
    al_server_lock (server);
 
    /* clear out data from our pipe. */
-   if (server->flags & AL_SERVER_PIPE)
+   if (server->state & AL_SERVER_STATE_PIPE)
       if (FD_ISSET (server->pipe_fd[0], &(server->fd_in))) {
          unsigned char buf[256];
          res = read (server->pipe_fd[0], buf, 256);
@@ -287,14 +296,14 @@ void *al_server_pthread_func (void *arg)
    server = arg;
 
    /* run until the server is told to quit. */
-   while (!(server->flags & AL_SERVER_QUIT))
+   while (!al_server_is_quitting (server))
       al_server_run_func (server);
 
    /* close our server. */
    al_server_close (server);
 
    /* mark that we're no longer running and return success. */
-   server->flags &= ~AL_SERVER_RUNNING;
+   server->state &= ~AL_SERVER_STATE_RUNNING;
    return NULL;
 }
 
@@ -312,10 +321,10 @@ int al_server_start (al_server_t *server)
          return 0;
 
    /* attempt to start a pthread. */
-   server->flags |= AL_SERVER_RUNNING;
+   server->state |= AL_SERVER_STATE_RUNNING;
    if ((res = pthread_create (&(server->pthread), NULL, al_server_pthread_func,
                               (void *) server)) != 0) {
-      server->flags &= ~AL_SERVER_RUNNING;
+      server->state &= ~AL_SERVER_STATE_RUNNING;
       AL_ERROR ("Unable to start server (Error: %d)\n", res);
       return 0;
    }
@@ -339,7 +348,7 @@ int al_server_interrupt (al_server_t *server)
       return 0;
 
    /* must have a pipe we can send something to. */
-   if (!(server->flags & AL_SERVER_PIPE))
+   if (!(server->state & AL_SERVER_STATE_PIPE))
       return 0;
 
    /* write something! */
@@ -355,9 +364,9 @@ int al_server_stop (al_server_t *server)
 {
    if (!al_server_is_running (server))
       return 0;
-   if (server->flags & AL_SERVER_QUIT)
+   if (al_server_is_quitting (server))
       return 0;
-   server->flags |= AL_SERVER_QUIT;
+   server->state |= AL_SERVER_STATE_QUIT;
    al_server_interrupt (server);
    return 1;
 }
@@ -378,6 +387,11 @@ int al_server_free (al_server_t *server)
    if (server->mutex)
       al_mutex_free (server->mutex);
 
+   /* get rid of all our modules. */
+   while (server->module_list)
+      al_module_free (server->module_list);
+
+   /* free the server itself and return success. */
    free (server);
    return 1;
 }
@@ -417,3 +431,12 @@ int al_server_write_string (al_server_t *server, char *string)
 {
    return al_server_write (server, (unsigned char *) string, strlen (string));
 }
+
+al_module_t *al_server_module_new (al_server_t *server, char *name, void *data,
+   size_t data_size, al_module_func *free_func)
+{
+   return al_module_new (server, &(server->module_list), name, data, data_size,
+                         free_func);
+}
+al_module_t *al_server_module_get (al_server_t *server, char *name)
+   { return al_module_get (&(server->module_list), name); }

@@ -90,7 +90,7 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-noinst_PROGRAMS = echoserver$(EXEEXT)
+noinst_PROGRAMS = echoserver$(EXEEXT) restserver$(EXEEXT)
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
@@ -140,7 +140,8 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 libalpaca_la_LIBADD =
 am__dirstamp = $(am__leading_dot)dirstamp
 am_libalpaca_la_OBJECTS = src/c/libalpaca_la-connections.lo \
-	src/c/libalpaca_la-mutex.lo src/c/libalpaca_la-read.lo \
+	src/c/libalpaca_la-modules.lo src/c/libalpaca_la-mutex.lo \
+	src/c/libalpaca_la-read.lo src/c/libalpaca_la-rest.lo \
 	src/c/libalpaca_la-server.lo src/c/libalpaca_la-utils.lo
 libalpaca_la_OBJECTS = $(am_libalpaca_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
@@ -158,6 +159,13 @@ echoserver_LDADD = $(LDADD)
 echoserver_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(echoserver_CFLAGS) \
 	$(CFLAGS) $(echoserver_LDFLAGS) $(LDFLAGS) -o $@
+am_restserver_OBJECTS =  \
+	src/examples-c/restserver-restserver.$(OBJEXT)
+restserver_OBJECTS = $(am_restserver_OBJECTS)
+restserver_LDADD = $(LDADD)
+restserver_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(restserver_CFLAGS) \
+	$(CFLAGS) $(restserver_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -192,8 +200,10 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(libalpaca_la_SOURCES) $(echoserver_SOURCES)
-DIST_SOURCES = $(libalpaca_la_SOURCES) $(echoserver_SOURCES)
+SOURCES = $(libalpaca_la_SOURCES) $(echoserver_SOURCES) \
+	$(restserver_SOURCES)
+DIST_SOURCES = $(libalpaca_la_SOURCES) $(echoserver_SOURCES) \
+	$(restserver_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -373,8 +383,10 @@ libalpaca_la_CFLAGS = \
 
 libalpaca_la_SOURCES = \
    src/c/connections.c \
+   src/c/modules.c \
    src/c/mutex.c \
    src/c/read.c \
+   src/c/rest.c \
    src/c/server.c \
    src/c/utils.c
 
@@ -386,20 +398,19 @@ otherinclude_HEADERS = \
    include/c/alpaca/defs.h \
    include/c/alpaca/connections.h \
    include/c/alpaca/llist.h \
+   include/c/alpaca/modules.h \
    include/c/alpaca/mutex.h \
    include/c/alpaca/read.h \
+   include/c/alpaca/rest.h \
    include/c/alpaca/server.h \
    include/c/alpaca/utils.h
 
-echoserver_SOURCES = \
-   src/examples-c/echoserver.c
-
-echoserver_CFLAGS = \
-   -I$(top_srcdir)/include/c -Wall -std=c99
-
-echoserver_LDFLAGS = \
-   -L../lib -lalpaca -lpthread
-
+echoserver_SOURCES = src/examples-c/echoserver.c
+echoserver_CFLAGS = -I$(top_srcdir)/include/c -Wall -std=c99
+echoserver_LDFLAGS = -L../lib -lalpaca -lpthread
+restserver_SOURCES = src/examples-c/restserver.c
+restserver_CFLAGS = -I$(top_srcdir)/include/c -Wall -std=c99
+restserver_LDFLAGS = -L../lib -lalpaca -lpthread
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -496,9 +507,13 @@ src/c/$(DEPDIR)/$(am__dirstamp):
 	@: > src/c/$(DEPDIR)/$(am__dirstamp)
 src/c/libalpaca_la-connections.lo: src/c/$(am__dirstamp) \
 	src/c/$(DEPDIR)/$(am__dirstamp)
+src/c/libalpaca_la-modules.lo: src/c/$(am__dirstamp) \
+	src/c/$(DEPDIR)/$(am__dirstamp)
 src/c/libalpaca_la-mutex.lo: src/c/$(am__dirstamp) \
 	src/c/$(DEPDIR)/$(am__dirstamp)
 src/c/libalpaca_la-read.lo: src/c/$(am__dirstamp) \
+	src/c/$(DEPDIR)/$(am__dirstamp)
+src/c/libalpaca_la-rest.lo: src/c/$(am__dirstamp) \
 	src/c/$(DEPDIR)/$(am__dirstamp)
 src/c/libalpaca_la-server.lo: src/c/$(am__dirstamp) \
 	src/c/$(DEPDIR)/$(am__dirstamp)
@@ -529,6 +544,13 @@ src/examples-c/echoserver-echoserver.$(OBJEXT):  \
 echoserver$(EXEEXT): $(echoserver_OBJECTS) $(echoserver_DEPENDENCIES) $(EXTRA_echoserver_DEPENDENCIES) 
 	@rm -f echoserver$(EXEEXT)
 	$(AM_V_CCLD)$(echoserver_LINK) $(echoserver_OBJECTS) $(echoserver_LDADD) $(LIBS)
+src/examples-c/restserver-restserver.$(OBJEXT):  \
+	src/examples-c/$(am__dirstamp) \
+	src/examples-c/$(DEPDIR)/$(am__dirstamp)
+
+restserver$(EXEEXT): $(restserver_OBJECTS) $(restserver_DEPENDENCIES) $(EXTRA_restserver_DEPENDENCIES) 
+	@rm -f restserver$(EXEEXT)
+	$(AM_V_CCLD)$(restserver_LINK) $(restserver_OBJECTS) $(restserver_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -540,11 +562,14 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-connections.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-modules.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-mutex.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-read.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-rest.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-server.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-utils.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/examples-c/$(DEPDIR)/echoserver-echoserver.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/examples-c/$(DEPDIR)/restserver-restserver.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -577,6 +602,13 @@ src/c/libalpaca_la-connections.lo: src/c/connections.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -c -o src/c/libalpaca_la-connections.lo `test -f 'src/c/connections.c' || echo '$(srcdir)/'`src/c/connections.c
 
+src/c/libalpaca_la-modules.lo: src/c/modules.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -MT src/c/libalpaca_la-modules.lo -MD -MP -MF src/c/$(DEPDIR)/libalpaca_la-modules.Tpo -c -o src/c/libalpaca_la-modules.lo `test -f 'src/c/modules.c' || echo '$(srcdir)/'`src/c/modules.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/c/$(DEPDIR)/libalpaca_la-modules.Tpo src/c/$(DEPDIR)/libalpaca_la-modules.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/c/modules.c' object='src/c/libalpaca_la-modules.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -c -o src/c/libalpaca_la-modules.lo `test -f 'src/c/modules.c' || echo '$(srcdir)/'`src/c/modules.c
+
 src/c/libalpaca_la-mutex.lo: src/c/mutex.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -MT src/c/libalpaca_la-mutex.lo -MD -MP -MF src/c/$(DEPDIR)/libalpaca_la-mutex.Tpo -c -o src/c/libalpaca_la-mutex.lo `test -f 'src/c/mutex.c' || echo '$(srcdir)/'`src/c/mutex.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/c/$(DEPDIR)/libalpaca_la-mutex.Tpo src/c/$(DEPDIR)/libalpaca_la-mutex.Plo
@@ -590,6 +622,13 @@ src/c/libalpaca_la-read.lo: src/c/read.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/c/read.c' object='src/c/libalpaca_la-read.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -c -o src/c/libalpaca_la-read.lo `test -f 'src/c/read.c' || echo '$(srcdir)/'`src/c/read.c
+
+src/c/libalpaca_la-rest.lo: src/c/rest.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -MT src/c/libalpaca_la-rest.lo -MD -MP -MF src/c/$(DEPDIR)/libalpaca_la-rest.Tpo -c -o src/c/libalpaca_la-rest.lo `test -f 'src/c/rest.c' || echo '$(srcdir)/'`src/c/rest.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/c/$(DEPDIR)/libalpaca_la-rest.Tpo src/c/$(DEPDIR)/libalpaca_la-rest.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/c/rest.c' object='src/c/libalpaca_la-rest.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -c -o src/c/libalpaca_la-rest.lo `test -f 'src/c/rest.c' || echo '$(srcdir)/'`src/c/rest.c
 
 src/c/libalpaca_la-server.lo: src/c/server.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -MT src/c/libalpaca_la-server.lo -MD -MP -MF src/c/$(DEPDIR)/libalpaca_la-server.Tpo -c -o src/c/libalpaca_la-server.lo `test -f 'src/c/server.c' || echo '$(srcdir)/'`src/c/server.c
@@ -618,6 +657,20 @@ src/examples-c/echoserver-echoserver.obj: src/examples-c/echoserver.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/examples-c/echoserver.c' object='src/examples-c/echoserver-echoserver.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(echoserver_CFLAGS) $(CFLAGS) -c -o src/examples-c/echoserver-echoserver.obj `if test -f 'src/examples-c/echoserver.c'; then $(CYGPATH_W) 'src/examples-c/echoserver.c'; else $(CYGPATH_W) '$(srcdir)/src/examples-c/echoserver.c'; fi`
+
+src/examples-c/restserver-restserver.o: src/examples-c/restserver.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(restserver_CFLAGS) $(CFLAGS) -MT src/examples-c/restserver-restserver.o -MD -MP -MF src/examples-c/$(DEPDIR)/restserver-restserver.Tpo -c -o src/examples-c/restserver-restserver.o `test -f 'src/examples-c/restserver.c' || echo '$(srcdir)/'`src/examples-c/restserver.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/examples-c/$(DEPDIR)/restserver-restserver.Tpo src/examples-c/$(DEPDIR)/restserver-restserver.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/examples-c/restserver.c' object='src/examples-c/restserver-restserver.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(restserver_CFLAGS) $(CFLAGS) -c -o src/examples-c/restserver-restserver.o `test -f 'src/examples-c/restserver.c' || echo '$(srcdir)/'`src/examples-c/restserver.c
+
+src/examples-c/restserver-restserver.obj: src/examples-c/restserver.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(restserver_CFLAGS) $(CFLAGS) -MT src/examples-c/restserver-restserver.obj -MD -MP -MF src/examples-c/$(DEPDIR)/restserver-restserver.Tpo -c -o src/examples-c/restserver-restserver.obj `if test -f 'src/examples-c/restserver.c'; then $(CYGPATH_W) 'src/examples-c/restserver.c'; else $(CYGPATH_W) '$(srcdir)/src/examples-c/restserver.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/examples-c/$(DEPDIR)/restserver-restserver.Tpo src/examples-c/$(DEPDIR)/restserver-restserver.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/examples-c/restserver.c' object='src/examples-c/restserver-restserver.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(restserver_CFLAGS) $(CFLAGS) -c -o src/examples-c/restserver-restserver.obj `if test -f 'src/examples-c/restserver.c'; then $(CYGPATH_W) 'src/examples-c/restserver.c'; else $(CYGPATH_W) '$(srcdir)/src/examples-c/restserver.c'; fi`
 
 mostlyclean-libtool:
 	-rm -f *.lo

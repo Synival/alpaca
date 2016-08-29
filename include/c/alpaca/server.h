@@ -25,7 +25,7 @@
 /* structure for servers. */
 struct _al_server_t {
    /* internal stuff. */
-   al_flags_t flags;
+   al_flags_t state, flags;
    struct sockaddr_in addr;
    int port, sock_fd, pipe_fd[2];
    fd_set fd_in, fd_out, fd_other;
@@ -37,8 +37,7 @@ struct _al_server_t {
    al_connection_t *connection_list;
 
    /* custom data we're passing to the server. */
-   void *data;
-   size_t data_size;
+   al_module_t *module_list;
 
    /* threading stuff. */
    pthread_t pthread;
@@ -50,6 +49,7 @@ struct _al_server_t {
 al_server_t *al_server_new (int port, al_flags_t flags);
 int al_server_is_open (al_server_t *server);
 int al_server_is_running (al_server_t *server);
+int al_server_is_quitting (al_server_t *server);
 int al_server_close (al_server_t *server);
 int al_server_open (al_server_t *server);
 int al_server_add_fd (al_server_t *server, int fd);
@@ -70,5 +70,8 @@ int al_server_func_leave (al_server_t *server, al_server_func *func);
 int al_server_func_set (al_server_t *server, int ref, al_server_func *func);
 int al_server_write_all (al_server_t *server, unsigned char *buf, size_t size);
 int al_server_write_string (al_server_t *server, char *string);
+al_module_t *al_server_module_new (al_server_t *server, char *name, void *data,
+   size_t data_size, al_module_func *free_func);
+al_module_t *al_server_module_get (al_server_t *server, char *name);
 
 #endif
