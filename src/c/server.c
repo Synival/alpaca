@@ -18,6 +18,20 @@
 
 #include "alpaca/server.h"
 
+/* al_server_new():
+ * ----------------
+ * Creates a new server instance.  This is the top-level structure for all
+ * AlPACA routines and should generally be called first.
+ *
+ * port:  Port opened for listening (ex: 1234)
+ * flags: Optional bit flags to enable certain features or modify behavior.
+ *        Flags are:
+ *
+ *        AL_SERVER_REST: Enable functional hooks for REST API usage via
+ *                        al_rest_init().  See 'rest.c' for details.
+ *
+ * Return value: A pointer to a new server instance or NULL on failure.
+ */
 al_server_t *al_server_new (int port, al_flags_t flags)
 {
    al_server_t *new;
@@ -37,6 +51,12 @@ al_server_t *al_server_new (int port, al_flags_t flags)
    return new;
 }
 
+/* al_server_is_open():      (checks AL_SERVER_STATE_OPEN)
+ * al_server_is_running():   (checks AL_SERVER_STATE_RUNNING)
+ * al_server_is_quitting():  (checks AL_SERVER_STATE_QUITTING)
+ * -------------------------------------------------------------
+ * Return value: 1 if the flag checked is on, otherwise 0.
+ */
 int al_server_is_open (al_server_t *server)
    { return (server->state & AL_SERVER_STATE_OPEN) ? 1 : 0; }
 int al_server_is_running (al_server_t *server)
@@ -44,34 +64,60 @@ int al_server_is_running (al_server_t *server)
 int al_server_is_quitting (al_server_t *server)
    { return (server->state & AL_SERVER_STATE_QUIT) ? 1 : 0; }
 
+/* al_server_lock():
+ * -----------------
+ * Claims ownership of server/connection resources.  Can be used recursively.
+ *
+ * Return value: 1 on success, 0 on failure.
+ */
 int al_server_lock (al_server_t *server)
 {
+   /* lock the mutex and return 0 if there was an error. */
    if (al_mutex_lock (server->mutex) != 0)
       return 0;
    server->mutex_count++;
    return 1;
 }
+
+/* al_server_unlock():
+ * -------------------
+ * Relinquishes ownership of server/connection resources.  If al_server_lock()
+ * has been called multiple times, this function must be called an equal number
+ * of times for the thread's mutex to be unlocked.
+ *
+ * Return value: 1 on success, 0 on failure.
+ */
 int al_server_unlock (al_server_t *server)
 {
+   /* unlock the mutex and return 0 if there was an error. */
    if (al_mutex_unlock (server->mutex) != 0)
       return 0;
    server->mutex_count--;
    return 1;
 }
 
+/* al_server_close():
+ * ------------------
+ * Closes all the server's connections, the pipe, and the listening socket.
+ * If the thread for the server loop is running, it is closed before
+ * proceeding.
+ *
+ * Returns 1 if all sockets have been closed, 0 if the server wasn't open.
+ */
 int al_server_close (al_server_t *server)
 {
    /* don't do anything if the server is currently closed. */
    if (!al_server_is_open (server))
       return 0;
 
-   /* server can't be running anymore. */
+   /* the server shouldn't be running, but if it is, close it and wait
+    * patiently for the thread to die. */
    if (al_server_is_running (server)) {
       al_server_stop (server);
       al_server_wait (server);
    }
 
-   /* lock server while we're doing this stuff. */
+   /* lock the server while we're manipulating its state. */
    al_server_lock (server);
 
    /* close connections. */
@@ -81,19 +127,28 @@ int al_server_close (al_server_t *server)
    /* close socket. */
    socket_close (server->sock_fd);
 
-   /* close pipe. */
+   /* close our pipe. */
    if (server->state & AL_SERVER_STATE_PIPE) {
       server->state &= ~AL_SERVER_STATE_PIPE;
       close (server->pipe_fd[0]);
       close (server->pipe_fd[1]);
    }
 
-   /* remove AL_SERVER_STATE_OPEN flag and return success. */
+   /* indicate that the server is no longer open, relinquish control,
+    * and return success. */
    server->state &= ~AL_SERVER_STATE_OPEN;
    al_server_unlock (server);
    return 1;
 }
 
+/* al_server_open():
+ * -----------------
+ * Opens a port for listening and accepting incoming connections.  This
+ * function also creates a pipe used for interrupting the thread containing
+ * the server loop.
+ *
+ * Return value: 1 on success, 0 on failure of any kind.
+ */
 int al_server_open (al_server_t *server)
 {
    int fd, flags, i, optval;
@@ -108,7 +163,10 @@ int al_server_open (al_server_t *server)
       return 0;
    }
 
-   /* let this be reusable. */
+   /* let this be reusable.  this lets the server reclaim control of this
+    * port on the event of a crash and there were connections that did not
+    * close cleanly. */
+   /* TODO: make sure this isn't a security risk or something. */
    optval = 1;
    setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof (optval));
 
@@ -135,14 +193,19 @@ int al_server_open (al_server_t *server)
       return 0;
    }
 
-   /* attempt to create a pipe we can use for select() interrupts. */
+   /* attempt to create a pipe we can use for select() interrupts.
+    * we use this pipe to "wake up" the server thread for events like
+    * shutting down, forcing output to be queued, and anything else that
+    * needs select() to stop waiting. */
    memset (server->pipe_fd, 0, sizeof (int) * 2);
    if (pipe (server->pipe_fd) != 0) {
       AL_ERROR ("Warning: Unable to create pipe (Error %d). \n"
                 "Continuing anyway.\n", errno);
    }
+   /* pipe() worked - set some things up. */
    else {
-      /* make both ends non-blocking, just to be safe. */
+      /* make both ends of the pipe non-blocking so the pipe is never
+       * something being waited upon. */
       for (i = 0; i < 2; i++) {
          flags = fcntl (server->pipe_fd[i], F_GETFL);
          flags |= O_NONBLOCK;
@@ -153,15 +216,27 @@ int al_server_open (al_server_t *server)
       server->state |= AL_SERVER_STATE_PIPE;
    }
 
-   /* set flags for our server. */
-   server->state |= AL_SERVER_STATE_OPEN;
+   /* record our listening socket and mark that our server is now open. */
    server->sock_fd = fd;
+   server->state |= AL_SERVER_STATE_OPEN;
 
    /* return success. */
    return 1;
 }
 
-int al_server_run_func (al_server_t *server)
+/* al_server_loop_func():
+ * ----------------------
+ * This function is called from the server loop in al_server_pthread_func().
+ * It does several important things:
+ *
+ *    1) Stage data to be sent out to connections,
+ *    2) Use select() to wait until connections are ready for I/O,
+ *    3) Read from connections with pending input and run function hooks,
+ *    4) Write staged output to connections ready for output.
+ *
+ * Return value: 1 on success, 0 on failure of any kind.
+ */
+int al_server_loop_func (al_server_t *server)
 {
    al_connection_t *c, *c_next;
    struct sockaddr_in client_addr;
@@ -289,6 +364,14 @@ int al_server_run_func (al_server_t *server)
    return 1;
 }
 
+/* al_server_pthread_func():
+ * -------------------------
+ * Function hook passed to our POSIX thread.  This function is the main server
+ * loop, which will continuously manage connections via al_server_loop_func()
+ * until given the shutdown notice via toggling AL_SERVER_QUIT in the server
+ * state.  When the loop ends, all connections including the listening socket
+ * are closed.
+ */
 void *al_server_pthread_func (void *arg)
 {
    al_server_t *server;
@@ -296,7 +379,7 @@ void *al_server_pthread_func (void *arg)
 
    /* run until the server is told to quit. */
    while (!al_server_is_quitting (server))
-      al_server_run_func (server);
+      al_server_loop_func (server);
 
    /* close our server. */
    al_server_close (server);
@@ -306,6 +389,16 @@ void *al_server_pthread_func (void *arg)
    return NULL;
 }
 
+/* al_server_start():
+ * -----------------
+ * Attempt to:
+ *
+ *    1) open the server's port for listening, and
+ *    2) start the server loop in a background thread.
+ *
+ * Returns 1 on success, 0 if the server was already running or the listening
+ * port couldn't be opened.
+ */
 int al_server_start (al_server_t *server)
 {
    int res;
@@ -332,6 +425,13 @@ int al_server_start (al_server_t *server)
    return 1;
 }
 
+/* al_server_wait():
+ * ------------------
+ * Wait patiently for the server loop's thread to end from a shutdown signal.
+ *
+ * Return value: Returns 1 if the server shut down normally,
+ *               returns 0 if the server wasn't running.
+ */
 int al_server_wait (al_server_t *server)
 {
    if (!al_server_is_running (server))
@@ -340,6 +440,13 @@ int al_server_wait (al_server_t *server)
    return 1;
 }
 
+/* al_server_interrupt():
+ * ----------------------
+ * Writes to the pipe created in al_server_open() in order to break out of
+ * the select() call in al_server_loop_func().
+ *
+ * Return value: Returns 1 on success, 0 on any failure.
+ */
 int al_server_interrupt (al_server_t *server)
 {
    /* must be running. */
@@ -359,6 +466,15 @@ int al_server_interrupt (al_server_t *server)
    return 1;
 }
 
+/* al_server_stop():
+ * -----------------
+ * Sends a shutdown signal to the server loop thread by toggling the
+ * AL_SERVER_STATE_QUIT flag and sending an interrupt to the select() function
+ * in al_server_loop_func().
+ *
+ * Return value: Returns 1 on success, 0 if the server is not running or
+ *               already shutting down.
+ */
 int al_server_stop (al_server_t *server)
 {
    if (!al_server_is_running (server))
@@ -370,6 +486,11 @@ int al_server_stop (al_server_t *server)
    return 1;
 }
 
+/* al_server_free():
+ * -----------------
+ * Stops the server loop, closes all connections, cleans up, deallocates all
+ * memory used by the server, then destroys the server itself.
+ */
 int al_server_free (al_server_t *server)
 {
    /* stop our server. */
@@ -395,21 +516,87 @@ int al_server_free (al_server_t *server)
    return 1;
 }
 
-int al_server_func_set (al_server_t *server, int ref, al_server_func *func)
+/* al_server_func_set():
+ * ---------------------
+ * Assigns user-defined function hooks to key tasks that need to be performed.
+ * Most tasks involve handling incoming or outgoing network traffic from
+ * client connections.
+ *
+ * server:   The server instance.
+ * task:     The index of the function being modified (see list below).
+ * func:     A function pointer for the task (see below for declaration).
+ *
+ * Return value: Returns 1 on success,
+ *               returns 0 for invalid servers or tasks.
+ *
+ * Function hook type definition (al_server_func):
+ * -----------------------------------------------
+ * int foo (al_server_t *server, al_connection_t *connection, int func,
+ *          void *arg)
+ *
+ * server:     The server instance.
+ * connection: Connection relevant to the task required.
+ * task:       Type of task calling the function hook.
+ * arg:        Task-specific data.  Cast to relevant type before using.
+ *
+ * For convenience, a macro is provided to declare al_server_func's:
+ * -----------------------------------------------------------------
+ * AL_SERVER_FUNC (foo)  <-- parameters are (server, connection, func, arg)
+ * {
+ *    ...
+ *    return some_int;
+ * }
+ *
+ * Valid values for 'task', their argument (*arg), and return values:
+ * ------------------------------------------------------------------
+ * AL_SERVER_FUNC_JOIN:
+ *    A new client has successfully connected.
+ *    arg:          (unused)
+ *    Return value: 1 if connection is valid, 0 if it should be closed.
+ *
+ * AL_SERVER_FUNC_LEAVE:
+ *    A client has just disconnected.
+ *    arg:          (unused)
+ *    Return value: (unused)
+ *
+ * AL_SERVER_FUNC_READ:
+ *    New input from a client is available for processing.
+ *    arg:          al_func_read_t *
+ *                  (see 'connections.h' for specification and 'read.c' for a
+ *                   list of helper functions.)
+ *    Return value: (unused)
+ *
+ * AL_SERVER_FUNC_PRE_WRITE:
+ *    Output has been staged and is ready to be sent out.
+ *    arg:          al_func_pre_write_t *
+ *                  (see 'connections.h' for specification)
+ *    Return value: (unused)
+ */
+int al_server_func_set (al_server_t *server, int task, al_server_func *func)
 {
    /* error-checking. */
    if (server == NULL)
       return 0;
-   if (ref < 0 || ref >= AL_SERVER_FUNC_MAX)
+   if (task < 0 || task >= AL_SERVER_FUNC_MAX)
       return 0;
 
    /* safely set function and return success. */
    al_server_lock (server);
-   server->func[ref] = func;
+   server->func[task] = func;
    al_server_unlock (server);
    return 1;
 }
 
+/* al_server_write():
+ * ------------------
+ * Writes data to all connections on a server.
+ *
+ * server: The server instance.
+ * buf:    Data to send out as unsigned bytes.
+ * size:   Number of bytes to send out.
+ *
+ * Return value: The number of connections written to.
+ */
 int al_server_write (al_server_t *server, unsigned char *buf, size_t size)
 {
    al_connection_t *c;
@@ -426,16 +613,46 @@ int al_server_write (al_server_t *server, unsigned char *buf, size_t size)
    return count;
 }
 
+/* al_server_write_string():
+ * -------------------------
+ * Writes null-terminated strings to all connections on the server.  The
+ * trailing '\0' character is not written.
+ * 
+ * server: The server instance.
+ * string: Null-terminated string to write.
+ *
+ * Return value: The number of connections written to.
+ */
 int al_server_write_string (al_server_t *server, char *string)
 {
    return al_server_write (server, (unsigned char *) string, strlen (string));
 }
 
+/* al_server_module_new():
+ * -----------------------
+ * Simple server wrapper for al_module_new().  Assigns generic data to the
+ * server and associates it with a name entry.
+ *
+ * server:    The server instance.
+ * name:      Name of the new module.
+ * data:      Data assigned to the module.  The module will automatically free
+ *            this data when the module itself is freed.
+ * free_func: Optional function called before freeing data in al_module_free().
+ *            (see 'modules.c' for 'al_module_func' specification.)
+ *
+ * Returns: Pointer to new instance of 'al_module_t' or NULL on error.
+ */
 al_module_t *al_server_module_new (al_server_t *server, char *name, void *data,
    size_t data_size, al_module_func *free_func)
 {
    return al_module_new (server, &(server->module_list), name, data, data_size,
                          free_func);
 }
+
+/* al_server_module_get():
+ * -----------------------
+ * Simple server wrapper for al_module_get().  Looks up a module by name and
+ * returns it if available.  Returns NULL if the module cannot be found.
+ */
 al_module_t *al_server_module_get (al_server_t *server, char *name)
    { return al_module_get (&(server->module_list), name); }
