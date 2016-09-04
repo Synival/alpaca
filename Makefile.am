@@ -24,8 +24,7 @@ otherinclude_HEADERS = \
    include/c/alpaca/mutex.h \
    include/c/alpaca/read.h \
    include/c/alpaca/rest.h \
-   include/c/alpaca/server.h \
-   include/c/alpaca/utils.h
+   include/c/alpaca/server.h
 
 noinst_PROGRAMS = echoserver restserver
 echoserver_SOURCES = src/examples-c/echoserver.c
