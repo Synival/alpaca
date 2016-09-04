@@ -47,12 +47,18 @@ AL_MODULE_FUNC (al_http_data_free)
    return 0;
 }
 
+int al_http_state_cleanup (al_http_state_t *state)
+{
+   if (state->verb)        {free (state->verb);       state->verb       =NULL;}
+   if (state->uri)         {free (state->uri);        state->uri        =NULL;}
+   if (state->version_str) {free (state->version_str);state->version_str=NULL;}
+   return 1;
+}
+
 AL_MODULE_FUNC (al_http_state_data_free)
 {
    al_http_state_t *state = arg;
-   if (state->verb)    free (state->verb);
-   if (state->uri)     free (state->uri);
-   if (state->version) free (state->version);
+   al_http_state_cleanup (state);
    return 0;
 }
 
@@ -96,37 +102,55 @@ int al_http_state_method (al_connection_t *connection, al_http_t *http,
       return 0;
 
    /* is there an HTTP version string? */
-   char *version;
-   if ((version = strchr (uri, ' ')) != NULL) {
-      while (*version == ' ') {
-         *version = '\0';
-         version++;
+   char *version_str;
+   if ((version_str = strchr (uri, ' ')) != NULL) {
+      while (*version_str == ' ') {
+         *version_str = '\0';
+         version_str++;
       }
-      if (*version == '\0')
-         version = NULL;
+      if (*version_str == '\0')
+         version_str = NULL;
    }
+
+   /* get the version based on the version string. */
+   int version = AL_HTTP_INVALID;
+   if (version_str == NULL || strcmp (version_str, "HTTP/0.9") == 0)
+      version = AL_HTTP_0_9;
+   else if (strcmp (version_str, "HTTP/1.0") == 0)
+      version = AL_HTTP_1_0;
+   else if (strcmp (version_str, "HTTP/1.1") == 0)
+      version = AL_HTTP_1_1;
 
    /* make sure a function exists for this verb. */
    al_http_func_def_t *fd;
    if ((fd = al_http_get_func (http, verb)) == NULL)
       return 0;
 
-   /* replace strings on move onto the next phase. */
-   al_util_replace_string (&(state->verb),    verb);
-   al_util_replace_string (&(state->uri),     uri);
-   al_util_replace_string (&(state->version), version);
+   /* remember strings and version info. */
+   al_util_replace_string (&(state->verb),        verb);
+   al_util_replace_string (&(state->uri),         uri);
+   al_util_replace_string (&(state->version_str), version_str);
+   state->version = version;
 
-   /* if no version was present, use legacy HTTP 0.9 format, which moves
-    * straight into content. */
-   if (!version) {
-      state->flags &= ~AL_STATE_PERSIST;
-      al_http_state_finish (connection, http, state);
+   /* behavior is different now depending on version. */
+   switch (state->version) {
+      case AL_HTTP_0_9:
+         al_http_state_finish (connection, http, state);
+         break;
+      case AL_HTTP_1_0:
+         state->state = AL_STATE_HEADER;
+         break;
+      case AL_HTTP_1_1:
+         state->flags |= AL_STATE_PERSIST;
+         state->state  = AL_STATE_HEADER;
+         break;
+      case AL_HTTP_INVALID:
+         /* TODO: error. */
+         return 0;
    }
-   else
-      state->state = AL_STATE_HEADER;
 
    /* return success. */
-   return 0;
+   return 1;
 }
 
 int al_http_state_header (al_connection_t *connection, al_http_t *http,
@@ -151,12 +175,21 @@ AL_SERVER_FUNC (al_http_func_join)
    /* initialize a blank state for our HTTP request. */
    al_http_state_t *state = calloc (1, sizeof (al_http_state_t));
    state->connection = connection;
-   state->state      = AL_STATE_METHOD;
-   state->flags      = AL_STATE_PERSIST;
+   al_http_state_reset (connection, al_http_get (server), state);
 
    /* assign the http data and return success. */
    al_connection_module_new (connection, "http", state,
       sizeof (al_http_state_t), al_http_state_data_free);
+   return 1;
+}
+
+int al_http_state_reset (al_connection_t *connection, al_http_t *http,
+   al_http_state_t *state)
+{
+   al_http_state_cleanup (state);
+   state->state   = AL_STATE_METHOD;
+   state->version = AL_HTTP_INVALID;
+   state->flags   = 0;
    return 1;
 }
 
@@ -222,20 +255,39 @@ int al_http_free_func (al_http_func_def_t *fd)
 int al_http_state_finish (al_connection_t *connection, al_http_t *http,
    al_http_state_t *state)
 {
+   /* TODO: check for necessary stuff in the header.
+    * HTTP/1.1 requires a Host, for example. */
+
    /* is there a valid verb? */
    al_http_func_def_t *fd = al_http_get_func (http, state->verb);
    if ((fd = al_http_get_func (http, state->verb)) == NULL) {
       /* TODO: error. */
       return 0;
    }
+
+   /* TODO: run whatever base function we should.  For HTTP/0.9, this is
+    * fine, but for 1.0 and 1.1, it needs to send a return code and other
+    * junk.  It should also have separate functions for bad requests. */
+
    /* run our function. */
    int r = fd->func (connection->server, connection, http, state, fd,
       state->uri);
 
-   /* should this connection be kept alive, or closed? */
-   if (state->version == NULL || !(state->flags & AL_STATE_PERSIST))
+   /* should this connection be closed or kept alive? */
+   if (state->flags & AL_STATE_PERSIST)
+      al_http_state_reset (connection, http, state);
+   else
       al_connection_close (connection);
 
    /* return whatever our function returned. */
    return r;
+}
+
+int al_http_write_string (al_connection_t *connection, al_http_t *http,
+   al_http_state_t *state, char *string)
+{
+   /* TODO: eventually, there might be gzip compression or other
+    * considerations.  this function exists to make sure that can happen
+    * if/when the feature exists. */
+   return al_connection_write_string (connection, string);
 }
