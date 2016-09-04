@@ -18,8 +18,7 @@ AL_HTTP_FUNC (example_http_get)
       "</body>\n"
       "</html>\n", data);
    al_connection_write_string (connection, buf);
-   al_connection_close (connection);
-   return 0;
+   return 1;
 }
 
 int main (int argc, char **argv)

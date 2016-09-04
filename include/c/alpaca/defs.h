@@ -10,10 +10,12 @@
 #include "llist.h"
 #include "utils.h"
 
+/* HTTP state flags. */
+#define AL_STATE_PERSIST      0x01
+
 /* HTTP states. */
 #define AL_STATE_METHOD       0
 #define AL_STATE_HEADER       1
-#define AL_STATE_PERSIST      2
 
 /* connection flags. */
 #define AL_CONNECTION_WRITING 0x01
