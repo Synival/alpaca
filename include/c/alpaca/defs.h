@@ -10,6 +10,12 @@
 #include "llist.h"
 #include "utils.h"
 
+/* HTTP versions. */
+#define AL_HTTP_INVALID      -1
+#define AL_HTTP_0_9           0
+#define AL_HTTP_1_0           1
+#define AL_HTTP_1_1           2
+
 /* HTTP state flags. */
 #define AL_STATE_PERSIST      0x01
 

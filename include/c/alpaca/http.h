@@ -24,9 +24,9 @@ struct _al_http_t {
 
 /* state information for each connection. */
 struct _al_http_state_t {
-   int state;
+   int state, version;
    al_flags_t flags;
-   char *verb, *uri, *version;
+   char *verb, *uri, *version_str;
    al_connection_t *connection;
 };
 
@@ -44,6 +44,11 @@ int al_http_state_header (al_connection_t *connection, al_http_t *http,
    al_http_state_t *state, char *line);
 int al_http_state_finish (al_connection_t *connection, al_http_t *http,
    al_http_state_t *state);
+int al_http_write_string (al_connection_t *connection, al_http_t *http,
+   al_http_state_t *state, char *string);
+int al_http_state_reset (al_connection_t *connection, al_http_t *http,
+   al_http_state_t *state);
+int al_http_state_cleanup (al_http_state_t *state);
 
 /* hooks and default functions. */
 AL_MODULE_FUNC (al_http_data_free);
