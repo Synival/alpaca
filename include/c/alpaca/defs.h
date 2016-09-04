@@ -10,9 +10,15 @@
 #include "llist.h"
 #include "utils.h"
 
+/* HTTP states. */
+#define AL_STATE_METHOD       0
+#define AL_STATE_HEADER       1
+#define AL_STATE_PERSIST      2
+
 /* connection flags. */
 #define AL_CONNECTION_WRITING 0x01
 #define AL_CONNECTION_WROTE   0x02
+#define AL_CONNECTION_CLOSING 0x04
 
 /* server functions. */
 #define AL_SERVER_FUNC_JOIN      0
@@ -29,7 +35,8 @@
 #define AL_SERVER_STATE_PIPE    0x08
 
 /* server flags. */
-#define AL_SERVER_REST  0x01
+/* TODO: make some of these.  like:
+ * #define AL_SERVER_HTTP  0x01 */
 
 /* type definitions. */
 typedef unsigned long int al_flags_t;
@@ -39,6 +46,9 @@ typedef struct _al_mutex_t          al_mutex_t;
 typedef struct _al_func_read_t      al_func_read_t;
 typedef struct _al_func_pre_write_t al_func_pre_write_t;
 typedef struct _al_module_t         al_module_t;
+typedef struct _al_http_func_def_t  al_http_func_def_t;
+typedef struct _al_http_t           al_http_t;
+typedef struct _al_http_state_t     al_http_state_t;
 
 /* function macros and typedefs. */
 #define AL_SERVER_FUNC(x) \
@@ -49,5 +59,10 @@ typedef AL_SERVER_FUNC(al_server_func);
 #define AL_MODULE_FUNC(x) \
    int x (al_module_t *module, void *arg)
 typedef AL_MODULE_FUNC(al_module_func);
+
+#define AL_HTTP_FUNC(x) \
+   int x (al_server_t *server, al_connection_t *connection, al_http_t *http, \
+          al_http_state_t *state, al_http_func_def_t *func, char *data)
+typedef AL_HTTP_FUNC(al_http_func);
 
 #endif

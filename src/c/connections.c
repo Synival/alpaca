@@ -8,6 +8,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "alpaca/modules.h"
 #include "alpaca/server.h"
 
 #include "alpaca/connections.h"
@@ -57,6 +58,10 @@ int al_connection_free (al_connection_t *c)
    if (server->func[AL_SERVER_FUNC_LEAVE])
       server->func[AL_SERVER_FUNC_LEAVE] (server, c, AL_SERVER_FUNC_LEAVE, 0);
 
+   /* free all modules. */
+   while (c->module_list)
+      al_module_free (c->module_list);
+
    /* attempt to send remaining output. */
    al_connection_stage_output (c);
    al_connection_fd_write (c);
@@ -78,6 +83,15 @@ int al_connection_free (al_connection_t *c)
    /* free remaining data and return success. */
    free (c);
    al_server_unlock (server);
+   return 1;
+}
+
+int al_connection_close (al_connection_t *c)
+{
+   /* fail if already being closed. */
+   if (c->flags & AL_CONNECTION_CLOSING)
+      return 0;
+   c->flags |= AL_CONNECTION_CLOSING;
    return 1;
 }
 
@@ -229,7 +243,8 @@ int al_connection_fd_write (al_connection_t *c)
 int al_connection_write (al_connection_t *c, unsigned char *buf,
    size_t size)
 {
-   if (size == 0)
+   /* don't write blank data or to connections being closed. */
+   if (size == 0 || c->flags & AL_CONNECTION_CLOSING)
       return 0;
    int res = al_connection_append_buffer (c, &(c->output), &(c->output_size),
       &(c->output_len), &(c->input_pos), buf, size);
@@ -277,3 +292,12 @@ int al_connection_stage_output (al_connection_t *c)
    c->output_max = c->output_len - c->output_pos;
    return c->output_max;
 }
+
+al_module_t *al_connection_module_new (al_connection_t *connection, char *name,
+   void *data, size_t data_size, al_module_func *free_func)
+{
+   return al_module_new (connection, &(connection->module_list), name, data,
+      data_size, free_func);
+}
+al_module_t *al_connection_module_get (al_connection_t *connection, char *name)
+   { return al_module_get (&(connection->module_list), name); }

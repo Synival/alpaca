@@ -14,7 +14,6 @@
 #include "alpaca/connections.h"
 #include "alpaca/modules.h"
 #include "alpaca/mutex.h"
-#include "alpaca/rest.h"
 
 #include "alpaca/server.h"
 
@@ -27,8 +26,7 @@
  * flags: Optional bit flags to enable certain features or modify behavior.
  *        Flags are:
  *
- *        AL_SERVER_REST: Enable functional hooks for REST API usage via
- *                        al_rest_init().  See 'rest.c' for details.
+ *        (no flags thus far)
  *
  * Return value: A pointer to a new server instance or NULL on failure.
  */
@@ -42,10 +40,6 @@ al_server_t *al_server_new (int port, al_flags_t flags)
 
    /* create a mutex for our running thread. */
    new->mutex = al_mutex_new ();
-
-   /* is this a RESTful service? */
-   if (flags & AL_SERVER_REST)
-      al_rest_init (new);
 
    /* we did it! */
    return new;
@@ -266,14 +260,20 @@ int al_server_loop_func (al_server_t *server)
 
    /* add all other connections. */
    for (c = server->connection_list; c != NULL; c = c->next) {
-      FD_SET (c->sock_fd, &(server->fd_in));
-      FD_SET (c->sock_fd, &(server->fd_other));
-      fd_max = AL_MAX (fd_max, c->sock_fd);
+      /* unless we're closing, read from this. */
+      if (!(c->flags & AL_CONNECTION_CLOSING))
+         FD_SET (c->sock_fd, &(server->fd_in));
 
       /* if there's stuff to write, add to the write buffer. */
       al_connection_stage_output (c);
       if (c->flags & AL_CONNECTION_WRITING)
          FD_SET (c->sock_fd, &(server->fd_out));
+
+      /* always add to the 'other' set. */
+      FD_SET (c->sock_fd, &(server->fd_other));
+
+      /* select() needs to know the highest file descriptor. */
+      fd_max = AL_MAX (fd_max, c->sock_fd);
    }
 
    /* don't greedily lock the server while select() is waiting. */
@@ -327,6 +327,7 @@ int al_server_loop_func (al_server_t *server)
          while (c->input_len > c->input_pos &&
                 server->func[AL_SERVER_FUNC_READ]) {
             al_func_read_t data = {
+               .connection   = c,
                .data         = c->input + c->input_pos,
                .data_len     = c->input_len - c->input_pos,
                .new_data     = c->input + c->input_len - bytes_read,
@@ -349,7 +350,8 @@ int al_server_loop_func (al_server_t *server)
       }
    }
 
-   /* check all of our connections for output. */
+   /* check all of our connections for output and check
+    * if they should be closed. */
    for (c = server->connection_list; c != NULL; c = c_next) {
       c_next = c->next;
       if (FD_ISSET (c->sock_fd, &(server->fd_out)))
@@ -357,6 +359,10 @@ int al_server_loop_func (al_server_t *server)
             al_connection_free (c);
             continue;
          }
+      if (c->output_len == 0 && c->flags & AL_CONNECTION_CLOSING) {
+         al_connection_free (c);
+         continue;
+      }
    }
 
    /* unlock server and return success. */

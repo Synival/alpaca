@@ -33,6 +33,10 @@ int al_read_used (al_func_read_t *read, size_t len)
 
 size_t al_read_line (char *buf, size_t size, al_func_read_t *read)
 {
+   /* do nothing for closed connections. */
+   if (read->connection->flags & AL_CONNECTION_CLOSING)
+      return 0;
+
    /* eat up initial '\0' characters. */
    size_t pos = 0;
    while (pos < read->data_len && ((char *) read->data)[pos] == '\0')
