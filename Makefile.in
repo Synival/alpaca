@@ -90,8 +90,12 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+<<<<<<< 34a41c5883cf81b85e0cfcaee97796f8e43e5081
 noinst_PROGRAMS = echoserver$(EXEEXT) restserver$(EXEEXT) \
 	cpptest$(EXEEXT)
+=======
+noinst_PROGRAMS = echoserver$(EXEEXT) httpserver$(EXEEXT)
+>>>>>>> Replaced all REST entries with HTTP because it's more accurate.  Connections now have modules.  Introduced al_http_state_t.  Started breaking up HTTP requests into 'method' and 'header' phases.
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
@@ -142,7 +146,7 @@ libalpaca_la_LIBADD =
 am__dirstamp = $(am__leading_dot)dirstamp
 am_libalpaca_la_OBJECTS = src/c/libalpaca_la-connections.lo \
 	src/c/libalpaca_la-modules.lo src/c/libalpaca_la-mutex.lo \
-	src/c/libalpaca_la-read.lo src/c/libalpaca_la-rest.lo \
+	src/c/libalpaca_la-read.lo src/c/libalpaca_la-http.lo \
 	src/c/libalpaca_la-server.lo src/c/libalpaca_la-utils.lo
 libalpaca_la_OBJECTS = $(am_libalpaca_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
@@ -182,13 +186,13 @@ echoserver_LDADD = $(LDADD)
 echoserver_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(echoserver_CFLAGS) \
 	$(CFLAGS) $(echoserver_LDFLAGS) $(LDFLAGS) -o $@
-am_restserver_OBJECTS =  \
-	src/examples-c/restserver-restserver.$(OBJEXT)
-restserver_OBJECTS = $(am_restserver_OBJECTS)
-restserver_LDADD = $(LDADD)
-restserver_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(restserver_CFLAGS) \
-	$(CFLAGS) $(restserver_LDFLAGS) $(LDFLAGS) -o $@
+am_httpserver_OBJECTS =  \
+	src/examples-c/httpserver-httpserver.$(OBJEXT)
+httpserver_OBJECTS = $(am_httpserver_OBJECTS)
+httpserver_LDADD = $(LDADD)
+httpserver_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(httpserver_CFLAGS) \
+	$(CFLAGS) $(httpserver_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -223,6 +227,7 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
+<<<<<<< 34a41c5883cf81b85e0cfcaee97796f8e43e5081
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
@@ -245,6 +250,12 @@ SOURCES = $(libalpaca_la_SOURCES) $(libalpaca_cpp_la_SOURCES) \
 	$(cpptest_SOURCES) $(echoserver_SOURCES) $(restserver_SOURCES)
 DIST_SOURCES = $(libalpaca_la_SOURCES) $(libalpaca_cpp_la_SOURCES) \
 	$(cpptest_SOURCES) $(echoserver_SOURCES) $(restserver_SOURCES)
+=======
+SOURCES = $(libalpaca_la_SOURCES) $(echoserver_SOURCES) \
+	$(httpserver_SOURCES)
+DIST_SOURCES = $(libalpaca_la_SOURCES) $(echoserver_SOURCES) \
+	$(httpserver_SOURCES)
+>>>>>>> Replaced all REST entries with HTTP because it's more accurate.  Connections now have modules.  Introduced al_http_state_t.  Started breaking up HTTP requests into 'method' and 'header' phases.
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -427,7 +438,7 @@ libalpaca_la_SOURCES = \
    src/c/modules.c \
    src/c/mutex.c \
    src/c/read.c \
-   src/c/rest.c \
+   src/c/http.c \
    src/c/server.c \
    src/c/utils.c
 
@@ -464,18 +475,28 @@ otherinclude_HEADERS = \
    include/c/alpaca/modules.h \
    include/c/alpaca/mutex.h \
    include/c/alpaca/read.h \
+<<<<<<< 34a41c5883cf81b85e0cfcaee97796f8e43e5081
    include/c/alpaca/rest.h \
+=======
+   include/c/alpaca/http.h \
+>>>>>>> Replaced all REST entries with HTTP because it's more accurate.  Connections now have modules.  Introduced al_http_state_t.  Started breaking up HTTP requests into 'method' and 'header' phases.
    include/c/alpaca/server.h
 
 echoserver_SOURCES = src/examples-c/echoserver.c
 echoserver_CFLAGS = -I$(top_srcdir)/include/c -Wall -std=c99
 echoserver_LDFLAGS = -L../lib -lalpaca -lpthread
+<<<<<<< 34a41c5883cf81b85e0cfcaee97796f8e43e5081
 restserver_SOURCES = src/examples-c/restserver.c
 restserver_CFLAGS = -I$(top_srcdir)/include/c -Wall -std=c99
 restserver_LDFLAGS = -L../lib -lalpaca -lpthread
 cpptest_SOURCES = AlPACAcpp/AlPACAcpp/main.cpp
 cpptest_CPPFLAGS = -I$(top_srcdir)/include/c -I$(top_srcdir)/include/cpp -Wall -std=c++11
 cpptest_LDFLAGS = -L../lib -lalpaca_cpp -lpthread
+=======
+httpserver_SOURCES = src/examples-c/httpserver.c
+httpserver_CFLAGS = -I$(top_srcdir)/include/c -Wall -std=c99
+httpserver_LDFLAGS = -L../lib -lalpaca -lpthread
+>>>>>>> Replaced all REST entries with HTTP because it's more accurate.  Connections now have modules.  Introduced al_http_state_t.  Started breaking up HTTP requests into 'method' and 'header' phases.
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -578,7 +599,7 @@ src/c/libalpaca_la-mutex.lo: src/c/$(am__dirstamp) \
 	src/c/$(DEPDIR)/$(am__dirstamp)
 src/c/libalpaca_la-read.lo: src/c/$(am__dirstamp) \
 	src/c/$(DEPDIR)/$(am__dirstamp)
-src/c/libalpaca_la-rest.lo: src/c/$(am__dirstamp) \
+src/c/libalpaca_la-http.lo: src/c/$(am__dirstamp) \
 	src/c/$(DEPDIR)/$(am__dirstamp)
 src/c/libalpaca_la-server.lo: src/c/$(am__dirstamp) \
 	src/c/$(DEPDIR)/$(am__dirstamp)
@@ -661,13 +682,13 @@ src/examples-c/echoserver-echoserver.$(OBJEXT):  \
 echoserver$(EXEEXT): $(echoserver_OBJECTS) $(echoserver_DEPENDENCIES) $(EXTRA_echoserver_DEPENDENCIES) 
 	@rm -f echoserver$(EXEEXT)
 	$(AM_V_CCLD)$(echoserver_LINK) $(echoserver_OBJECTS) $(echoserver_LDADD) $(LIBS)
-src/examples-c/restserver-restserver.$(OBJEXT):  \
+src/examples-c/httpserver-httpserver.$(OBJEXT):  \
 	src/examples-c/$(am__dirstamp) \
 	src/examples-c/$(DEPDIR)/$(am__dirstamp)
 
-restserver$(EXEEXT): $(restserver_OBJECTS) $(restserver_DEPENDENCIES) $(EXTRA_restserver_DEPENDENCIES) 
-	@rm -f restserver$(EXEEXT)
-	$(AM_V_CCLD)$(restserver_LINK) $(restserver_OBJECTS) $(restserver_LDADD) $(LIBS)
+httpserver$(EXEEXT): $(httpserver_OBJECTS) $(httpserver_DEPENDENCIES) $(EXTRA_httpserver_DEPENDENCIES) 
+	@rm -f httpserver$(EXEEXT)
+	$(AM_V_CCLD)$(httpserver_LINK) $(httpserver_OBJECTS) $(httpserver_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -692,10 +713,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_cpp_la-server.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_cpp_la-utils.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-connections.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-http.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-modules.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-mutex.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-read.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-rest.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-server.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-utils.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/cpp/$(DEPDIR)/libalpaca_cpp_la-connections.Plo@am__quote@
@@ -703,7 +724,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/cpp/servers/$(DEPDIR)/libalpaca_cpp_la-basicserver.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/cpp/servers/$(DEPDIR)/libalpaca_cpp_la-emptyserver.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/examples-c/$(DEPDIR)/echoserver-echoserver.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@src/examples-c/$(DEPDIR)/restserver-restserver.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/examples-c/$(DEPDIR)/httpserver-httpserver.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -757,12 +778,12 @@ src/c/libalpaca_la-read.lo: src/c/read.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -c -o src/c/libalpaca_la-read.lo `test -f 'src/c/read.c' || echo '$(srcdir)/'`src/c/read.c
 
-src/c/libalpaca_la-rest.lo: src/c/rest.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -MT src/c/libalpaca_la-rest.lo -MD -MP -MF src/c/$(DEPDIR)/libalpaca_la-rest.Tpo -c -o src/c/libalpaca_la-rest.lo `test -f 'src/c/rest.c' || echo '$(srcdir)/'`src/c/rest.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/c/$(DEPDIR)/libalpaca_la-rest.Tpo src/c/$(DEPDIR)/libalpaca_la-rest.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/c/rest.c' object='src/c/libalpaca_la-rest.lo' libtool=yes @AMDEPBACKSLASH@
+src/c/libalpaca_la-http.lo: src/c/http.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -MT src/c/libalpaca_la-http.lo -MD -MP -MF src/c/$(DEPDIR)/libalpaca_la-http.Tpo -c -o src/c/libalpaca_la-http.lo `test -f 'src/c/http.c' || echo '$(srcdir)/'`src/c/http.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/c/$(DEPDIR)/libalpaca_la-http.Tpo src/c/$(DEPDIR)/libalpaca_la-http.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/c/http.c' object='src/c/libalpaca_la-http.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -c -o src/c/libalpaca_la-rest.lo `test -f 'src/c/rest.c' || echo '$(srcdir)/'`src/c/rest.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -c -o src/c/libalpaca_la-http.lo `test -f 'src/c/http.c' || echo '$(srcdir)/'`src/c/http.c
 
 src/c/libalpaca_la-server.lo: src/c/server.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -MT src/c/libalpaca_la-server.lo -MD -MP -MF src/c/$(DEPDIR)/libalpaca_la-server.Tpo -c -o src/c/libalpaca_la-server.lo `test -f 'src/c/server.c' || echo '$(srcdir)/'`src/c/server.c
@@ -841,19 +862,19 @@ src/examples-c/echoserver-echoserver.obj: src/examples-c/echoserver.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(echoserver_CFLAGS) $(CFLAGS) -c -o src/examples-c/echoserver-echoserver.obj `if test -f 'src/examples-c/echoserver.c'; then $(CYGPATH_W) 'src/examples-c/echoserver.c'; else $(CYGPATH_W) '$(srcdir)/src/examples-c/echoserver.c'; fi`
 
-src/examples-c/restserver-restserver.o: src/examples-c/restserver.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(restserver_CFLAGS) $(CFLAGS) -MT src/examples-c/restserver-restserver.o -MD -MP -MF src/examples-c/$(DEPDIR)/restserver-restserver.Tpo -c -o src/examples-c/restserver-restserver.o `test -f 'src/examples-c/restserver.c' || echo '$(srcdir)/'`src/examples-c/restserver.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/examples-c/$(DEPDIR)/restserver-restserver.Tpo src/examples-c/$(DEPDIR)/restserver-restserver.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/examples-c/restserver.c' object='src/examples-c/restserver-restserver.o' libtool=no @AMDEPBACKSLASH@
+src/examples-c/httpserver-httpserver.o: src/examples-c/httpserver.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(httpserver_CFLAGS) $(CFLAGS) -MT src/examples-c/httpserver-httpserver.o -MD -MP -MF src/examples-c/$(DEPDIR)/httpserver-httpserver.Tpo -c -o src/examples-c/httpserver-httpserver.o `test -f 'src/examples-c/httpserver.c' || echo '$(srcdir)/'`src/examples-c/httpserver.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/examples-c/$(DEPDIR)/httpserver-httpserver.Tpo src/examples-c/$(DEPDIR)/httpserver-httpserver.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/examples-c/httpserver.c' object='src/examples-c/httpserver-httpserver.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(restserver_CFLAGS) $(CFLAGS) -c -o src/examples-c/restserver-restserver.o `test -f 'src/examples-c/restserver.c' || echo '$(srcdir)/'`src/examples-c/restserver.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(httpserver_CFLAGS) $(CFLAGS) -c -o src/examples-c/httpserver-httpserver.o `test -f 'src/examples-c/httpserver.c' || echo '$(srcdir)/'`src/examples-c/httpserver.c
 
-src/examples-c/restserver-restserver.obj: src/examples-c/restserver.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(restserver_CFLAGS) $(CFLAGS) -MT src/examples-c/restserver-restserver.obj -MD -MP -MF src/examples-c/$(DEPDIR)/restserver-restserver.Tpo -c -o src/examples-c/restserver-restserver.obj `if test -f 'src/examples-c/restserver.c'; then $(CYGPATH_W) 'src/examples-c/restserver.c'; else $(CYGPATH_W) '$(srcdir)/src/examples-c/restserver.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/examples-c/$(DEPDIR)/restserver-restserver.Tpo src/examples-c/$(DEPDIR)/restserver-restserver.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/examples-c/restserver.c' object='src/examples-c/restserver-restserver.obj' libtool=no @AMDEPBACKSLASH@
+src/examples-c/httpserver-httpserver.obj: src/examples-c/httpserver.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(httpserver_CFLAGS) $(CFLAGS) -MT src/examples-c/httpserver-httpserver.obj -MD -MP -MF src/examples-c/$(DEPDIR)/httpserver-httpserver.Tpo -c -o src/examples-c/httpserver-httpserver.obj `if test -f 'src/examples-c/httpserver.c'; then $(CYGPATH_W) 'src/examples-c/httpserver.c'; else $(CYGPATH_W) '$(srcdir)/src/examples-c/httpserver.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/examples-c/$(DEPDIR)/httpserver-httpserver.Tpo src/examples-c/$(DEPDIR)/httpserver-httpserver.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/examples-c/httpserver.c' object='src/examples-c/httpserver-httpserver.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(restserver_CFLAGS) $(CFLAGS) -c -o src/examples-c/restserver-restserver.obj `if test -f 'src/examples-c/restserver.c'; then $(CYGPATH_W) 'src/examples-c/restserver.c'; else $(CYGPATH_W) '$(srcdir)/src/examples-c/restserver.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(httpserver_CFLAGS) $(CFLAGS) -c -o src/examples-c/httpserver-httpserver.obj `if test -f 'src/examples-c/httpserver.c'; then $(CYGPATH_W) 'src/examples-c/httpserver.c'; else $(CYGPATH_W) '$(srcdir)/src/examples-c/httpserver.c'; fi`
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\

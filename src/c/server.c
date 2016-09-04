@@ -35,14 +35,14 @@ al_server_t *al_server_new (int port, al_flags_t flags)
 
    /* create an empty structure with a mutex. */
    new = calloc (1, sizeof (al_server_t));
+   new->port = port;
+
+   /* create a mutex for our running thread. */
    new->mutex = al_mutex_new ();
 
    /* set port + flags. */
    al_server_set_flags (new, port, flags);
 
-   /* is this a RESTful service? */
-   if (flags & AL_SERVER_REST)
-      al_rest_init (new);
 
    /* we did it! */
    return new;
@@ -280,7 +280,6 @@ int al_server_loop_func (al_server_t *server)
 
    /* before we wait, make sure our data is sane. */
    al_server_lock (server);
-   server->state |= AL_SERVER_STATE_IN_LOOP;
 
    /* some silly preparations for accept(). */
    client_addr_size = sizeof (struct sockaddr_in);
@@ -302,14 +301,20 @@ int al_server_loop_func (al_server_t *server)
 
    /* add all other connections. */
    for (c = server->connection_list; c != NULL; c = c->next) {
-      FD_SET (c->sock_fd, &(server->fd_in));
-      FD_SET (c->sock_fd, &(server->fd_other));
-      fd_max = AL_MAX (fd_max, c->sock_fd);
+      /* unless we're closing, read from this. */
+      if (!(c->flags & AL_CONNECTION_CLOSING))
+         FD_SET (c->sock_fd, &(server->fd_in));
 
       /* if there's stuff to write, add to the write buffer. */
       al_connection_stage_output (c);
       if (c->flags & AL_CONNECTION_WRITING)
          FD_SET (c->sock_fd, &(server->fd_out));
+
+      /* always add to the 'other' set. */
+      FD_SET (c->sock_fd, &(server->fd_other));
+
+      /* select() needs to know the highest file descriptor. */
+      fd_max = AL_MAX (fd_max, c->sock_fd);
    }
 
    /* don't greedily lock the server while select() is waiting. */
@@ -363,6 +368,7 @@ int al_server_loop_func (al_server_t *server)
          while (c->input_len > c->input_pos &&
                 server->func[AL_SERVER_FUNC_READ]) {
             al_func_read_t data = {
+               .connection   = c,
                .data         = c->input + c->input_pos,
                .data_len     = c->input_len - c->input_pos,
                .new_data     = c->input + c->input_len - bytes_read,
@@ -385,7 +391,8 @@ int al_server_loop_func (al_server_t *server)
       }
    }
 
-   /* check all of our connections for output. */
+   /* check all of our connections for output and check
+    * if they should be closed. */
    for (c = server->connection_list; c != NULL; c = c_next) {
       c_next = c->next;
       if (FD_ISSET (c->sock_fd, &(server->fd_out)))
@@ -393,6 +400,10 @@ int al_server_loop_func (al_server_t *server)
             al_connection_free (c);
             continue;
          }
+      if (c->output_len == 0 && c->flags & AL_CONNECTION_CLOSING) {
+         al_connection_free (c);
+         continue;
+      }
    }
 
    /* unlock server and return success. */
@@ -713,21 +724,3 @@ al_module_t *al_server_module_new (al_server_t *server, char *name, void *data,
  */
 al_module_t *al_server_module_get (al_server_t *server, char *name)
    { return al_module_get (&(server->module_list), name); }
-
-/* al_server_in_thread():
- * ----------------------
- * Check if pthread_self() matches the server thread.
- *
- * server: The server whose thread we're checking.
- *
- * Returns: 0 if the server is not running or pthread_self() doesn't match.
- *          1 if the server is running and pthread_self() matches.
- */
-int al_server_in_thread (al_server_t *server)
-{
-   if (!al_server_is_running (server))
-      return 0;
-   if (pthread_equal (pthread_self(), server->pthread))
-      return 1;
-   return 0;
-}

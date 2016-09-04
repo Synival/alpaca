@@ -1,6 +1,6 @@
 ACLOCAL_AMFLAGS=-I m4
 
-lib_LTLIBRARIES = libalpaca.la libalpaca_cpp.la
+lib_LTLIBRARIES = libalpaca.la
 libalpaca_la_LDFLAGS = \
    -release 0.0.1
 libalpaca_la_CFLAGS = \
@@ -10,7 +10,7 @@ libalpaca_la_SOURCES = \
    src/c/modules.c \
    src/c/mutex.c \
    src/c/read.c \
-   src/c/rest.c \
+   src/c/http.c \
    src/c/server.c \
    src/c/utils.c
 
@@ -43,18 +43,14 @@ otherinclude_HEADERS = \
    include/c/alpaca/modules.h \
    include/c/alpaca/mutex.h \
    include/c/alpaca/read.h \
-   include/c/alpaca/rest.h \
+   include/c/alpaca/http.h \
    include/c/alpaca/server.h
 
-noinst_PROGRAMS = echoserver restserver cpptest
+noinst_PROGRAMS = echoserver httpserver
 echoserver_SOURCES = src/examples-c/echoserver.c
 echoserver_CFLAGS  = -I$(top_srcdir)/include/c -Wall -std=c99
 echoserver_LDFLAGS = -L../lib -lalpaca -lpthread
 
-restserver_SOURCES = src/examples-c/restserver.c
-restserver_CFLAGS  = -I$(top_srcdir)/include/c -Wall -std=c99
-restserver_LDFLAGS = -L../lib -lalpaca -lpthread
-
-cpptest_SOURCES = AlPACAcpp/AlPACAcpp/main.cpp
-cpptest_CPPFLAGS  = -I$(top_srcdir)/include/c -I$(top_srcdir)/include/cpp -Wall -std=c++11
-cpptest_LDFLAGS = -L../lib -lalpaca_cpp -lpthread
+httpserver_SOURCES = src/examples-c/httpserver.c
+httpserver_CFLAGS  = -I$(top_srcdir)/include/c -Wall -std=c99
+httpserver_LDFLAGS = -L../lib -lalpaca -lpthread
