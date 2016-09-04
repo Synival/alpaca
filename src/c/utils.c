@@ -22,3 +22,13 @@ char *strdup (const char *str)
    return buf;
 }
 #endif
+
+int al_util_replace_string (char **dst, char *src)
+{
+   if (*dst == src)
+      return 0;
+   if (*dst)
+      free (*dst);
+   *dst = src ? strdup (src) : NULL;
+   return 1;
+}

@@ -11,6 +11,14 @@
    #define HAVE_STRDUP
 #endif
 
+#ifndef HAVE_STRDUP
+char *strdup (const char *str);
+#endif
+
+/* our own functions. */
+int al_util_replace_string (char **dst, char *src);
+
+/* handy macros. */
 #define AL_PRINTF  printf
 #define AL_FPRINTF fprintf
 #define AL_ERROR(...) \
@@ -20,9 +28,5 @@
    (((x) > (y)) ? (x) : (y))
 #define AL_MIN(x, y) \
    (((x) < (y)) ? (x) : (y))
-
-#ifndef HAVE_STRDUP
-char *strdup (const char *str);
-#endif
 
 #endif
