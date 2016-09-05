@@ -5,7 +5,11 @@
 #ifndef __ALPACA_C_UTILS_H
 #define __ALPACA_C_UTILS_H
 
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+   #include "config.h"
+#elif defined __APPLE__
+   #define HAVE_STRDUP
+#endif
 
 #ifndef HAVE_STRDUP
 char *strdup (const char *str);
