@@ -43,6 +43,9 @@ struct _al_server_t {
    pthread_t pthread;
    al_mutex_t *mutex;
    int mutex_count;
+    
+   /* For compatability with C++ wrapper/ */
+   void *wrapper;
 };
 
 /* functions for server management. */
