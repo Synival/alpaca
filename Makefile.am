@@ -1,6 +1,6 @@
 ACLOCAL_AMFLAGS=-I m4
 
-lib_LTLIBRARIES = libalpaca.la
+lib_LTLIBRARIES = libalpaca.la libalpaca_cpp.la
 libalpaca_la_LDFLAGS = \
    -release 0.0.1
 libalpaca_la_CFLAGS = \
@@ -13,6 +13,23 @@ libalpaca_la_SOURCES = \
    src/c/rest.c \
    src/c/server.c \
    src/c/utils.c
+
+libalpaca_cpp_la_LDFLAGS = \
+   -release 0.0.1
+libalpaca_cpp_la_CFLAGS = \
+   -I$(top_srcdir)/include/c -Wall -std=c99
+libalpaca_cpp_la_CPPFLAGS = \
+   -I$(top_srcdir)/include/c -I$(top_srcdir)/include/cpp -std=c++11
+libalpaca_cpp_la_SOURCES = \
+   src/c/connections.c \
+   src/c/modules.c \
+   src/c/mutex.c \
+   src/c/read.c \
+   src/c/rest.c \
+   src/c/server.c \
+   src/c/utils.c \
+   src/cpp/alpaca.cpp
+
 otherincludedir = \
    $(includedir)/alpaca
 otherinclude_HEADERS = \
@@ -26,7 +43,7 @@ otherinclude_HEADERS = \
    include/c/alpaca/rest.h \
    include/c/alpaca/server.h
 
-noinst_PROGRAMS = echoserver restserver
+noinst_PROGRAMS = echoserver restserver cpptest
 echoserver_SOURCES = src/examples-c/echoserver.c
 echoserver_CFLAGS  = -I$(top_srcdir)/include/c -Wall -std=c99
 echoserver_LDFLAGS = -L../lib -lalpaca -lpthread
@@ -34,3 +51,7 @@ echoserver_LDFLAGS = -L../lib -lalpaca -lpthread
 restserver_SOURCES = src/examples-c/restserver.c
 restserver_CFLAGS  = -I$(top_srcdir)/include/c -Wall -std=c99
 restserver_LDFLAGS = -L../lib -lalpaca -lpthread
+
+cpptest_SOURCES = AlPACAcpp/AlPACAcpp/main.cpp
+cpptest_CPPFLAGS  = -I$(top_srcdir)/include/c -I$(top_srcdir)/include/cpp -Wall -std=c++11
+cpptest_LDFLAGS = -L../lib -lalpaca_cpp -lpthread
