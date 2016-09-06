@@ -27,8 +27,8 @@ int main(int argc, const char * argv[]) {
     cout << "Connecting to server.\n";
     if (server->connect(4096) == 2)
         return 2;
-    server->serverFuncRead(nullptr, 0, nullptr);
-    server->_readFunc(nullptr, nullptr, 0, nullptr);
+//    server->serverFuncRead(nullptr, 0, nullptr);
+//    server->_readFunc(nullptr, nullptr, 0, nullptr);
     
 //    cout << "Waiting...\n";
 //    server->wait();

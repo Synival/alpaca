@@ -17,7 +17,7 @@ AlpacaServer::~AlpacaServer() {
 
 int AlpacaServer::connect(int port, unsigned long int flags) {
     if (this->server != nullptr)
-        return 0;
+        return 1;
     
     this->server = al_server_new(port, flags);
     this->server->wrapper = this;
@@ -27,22 +27,16 @@ int AlpacaServer::connect(int port, unsigned long int flags) {
         return 2;
     }
 
-    al_server_func_set(this->server, AL_SERVER_FUNC_READ, this->_readFunc);
-//    al_server_func_set(this->server, AL_SERVER_FUNC_READ, static_cast<void *>(this->_readFunc));
-//    al_server_func_set(this->server, AL_SERVER_FUNC_JOIN,
-//                       [this](al_server_t *server, al_connection_t *connection, int func, void *arg) -> int
-//                            {
-//                                return  this->serverFuncRead(connection, func, arg);
-//                            });
-    
+    al_server_func_set(this->server, AL_SERVER_FUNC_READ, this->_serverFuncRead);
+
     // al_server_wait (server);
     
-    return 1;
+    return 0;
 }
 
 int AlpacaServer::disconnect() {
     if (this->server == nullptr)
-        return 0;
+        return 1;
     
     al_server_free(this->server);
     this->server = nullptr;
@@ -67,4 +61,10 @@ int AlpacaServer::wait() {
 int AlpacaServer::serverFuncRead(al_connection_t *connection, int func, void *arg) {
     cout << "This is an empty readFunc(), please write your own!\n";
     return 0;
+}
+
+int AlpacaServer::_serverFuncRead(al_server_t *this_server, al_connection_t *connection, int func, void *arg)
+{
+    AlpacaServer *this_ptr = reinterpret_cast <AlpacaServer *>(this_server->wrapper);
+    return this_ptr->serverFuncRead(connection, func, arg);
 }
