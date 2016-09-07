@@ -149,7 +149,8 @@ int al_http_state_method (al_connection_t *connection, al_http_t *http,
    /* behavior is different now depending on version. */
    switch (state->version) {
       case AL_HTTP_0_9:
-         al_http_state_finish (connection, http, state);
+         if (al_http_state_finish (connection, http, state) != 1)
+            return 0;
          break;
       case AL_HTTP_1_0:
          state->state = AL_STATE_HEADER;
@@ -171,10 +172,8 @@ int al_http_state_header (al_connection_t *connection, al_http_t *http,
    al_http_state_t *state, char *line)
 {
    /* if this is the last line, finish our request. */
-   if (*line == '\0') {
-      al_http_state_finish (connection, http, state);
-      return 1;
-   }
+   if (*line == '\0')
+      return al_http_state_finish (connection, http, state);
 
    /* make sure this is a proper header field. */
    char *colon;
@@ -293,8 +292,13 @@ int al_http_free_func (al_http_func_def_t *fd)
 int al_http_state_finish (al_connection_t *connection, al_http_t *http,
    al_http_state_t *state)
 {
-   /* TODO: check for necessary stuff in the header.
-    * HTTP/1.1 requires a Host, for example. */
+   /* HTTP/1.1 requires a Host, for example. */
+   if (state->version == AL_HTTP_1_1) {
+      /* TODO: do we need to /do/ anything with the host...? */
+      if (!al_http_header_get (state, "Host"))
+         /* TODO: error. */
+         return 0;
+   }
 
    /* is there a valid verb? */
    al_http_func_def_t *fd = al_http_get_func (http, state->verb);
