@@ -1,6 +1,6 @@
 /* alpaca.hpp
  * -------------
- * all C++ header files for alpaca. */
+ * All C++ header files for alpaca. */
 
 #ifndef __ALPACA_CPP_ALPACA_HPP
 #define __ALPACA_CPP_ALPACA_HPP

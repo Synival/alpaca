@@ -1,11 +1,11 @@
 /* alpaca.hpp
  * -------------
- * all C++ header files for alpaca. */
+ * Definition AlpacaServer, the wrapper class for al_server_t. */
 
 #ifndef __ALPACA_CPP_SERVER_HPP
 #define __ALPACA_CPP_SERVER_HPP
 
-//#include <stdlib>
+#include <list>
 
 extern "C" {
     #include "alpaca/alpaca.h"
@@ -16,7 +16,7 @@ extern "C" {
 class AlpacaServer {
 private:
     al_server_t *server = nullptr;
-    AlpacaConnection * con;
+    std::list<AlpacaConnection *> connections;
 
 public:
     AlpacaServer();

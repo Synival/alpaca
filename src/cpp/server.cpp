@@ -1,6 +1,6 @@
-/* wrapper.cpp
+/* server.cpp
  * -------------
- * C++ class wrapper for AlPACA's C functionality. */
+ * Implementation of AlpacaServer, the wrapper class for al_server_t. */
 
 
 #include "alpaca/server.hpp"
@@ -90,14 +90,29 @@ int AlpacaServer::serverFuncMax(al_connection_t *connection, int func, void *arg
 /* Internal static class member functions which wrap the server hooks that an AlPACA server must implement. */
 int AlpacaServer::_serverFuncJoin(al_server_t *this_server, al_connection_t *connection, int func, void *arg)
 {
+    // Push the connection onto this->connections.
     AlpacaServer *this_ptr = reinterpret_cast <AlpacaServer *>(this_server->cpp_wrapper);
+//    AlpacaConnection *conn = new AlpacaConnection(connection);
+    this_ptr->connections.push_back( new AlpacaConnection(connection) );
+    
     return this_ptr->serverFuncJoin(connection, func, arg);
 }
 
 int AlpacaServer::_serverFuncLeave(al_server_t *this_server, al_connection_t *connection, int func, void *arg)
 {
     AlpacaServer *this_ptr = reinterpret_cast <AlpacaServer *>(this_server->cpp_wrapper);
-    return this_ptr->serverFuncLeave(connection, func, arg);
+    int return_code = this_ptr->serverFuncLeave(connection, func, arg);
+    
+    // Attempt to pop the connection from this->connections.
+    for (list<AlpacaConnection *>::iterator i = this_ptr->connections.begin(); i != this_ptr->connections.end(); i++) {
+        if ((*i)->equals(connection)) {
+            return_code = this_ptr->serverFuncLeave(connection, func, arg);
+            this_ptr->connections.erase(i);
+            return return_code;
+        }
+    }
+    
+    return return_code;
 }
 
 int AlpacaServer::_serverFuncRead(al_server_t *this_server, al_connection_t *connection, int func, void *arg)
