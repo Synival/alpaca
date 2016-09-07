@@ -52,6 +52,7 @@ int al_http_state_cleanup (al_http_state_t *state)
    if (state->verb)        {free (state->verb);       state->verb       =NULL;}
    if (state->uri)         {free (state->uri);        state->uri        =NULL;}
    if (state->version_str) {free (state->version_str);state->version_str=NULL;}
+   al_http_header_clear (state);
    return 1;
 }
 
@@ -66,20 +67,29 @@ AL_SERVER_FUNC (al_http_func_read)
 {
    al_http_t       *http  = al_http_get (server);
    al_http_state_t *state = al_http_get_state (connection);
-   int count = 0;
+   char buf[256];
+   int result;
 
    /* read lines as long as the connection is alive. */
-   char buf[256];
    while (al_read_line (buf, sizeof (buf), arg) > 0) {
-      count++;
-      printf ("   %s\n", buf);
       switch (state->state) {
          case AL_STATE_METHOD:
-            al_http_state_method (connection, http, state, buf);
+            result = al_http_state_method (connection, http, state, buf);
             break;
          case AL_STATE_HEADER:
-            al_http_state_header (connection, http, state, buf);
+            result = al_http_state_header (connection, http, state, buf);
             break;
+         default:
+            result = (buf[0] == '\0' ? 0 : 1);
+      }
+
+      /* if the result wasn't successful, force the connection closed. */
+      if (result != 1) {
+         /* TODO: more descriptive error in (probably) HTML format. */
+         al_connection_write_string (connection,
+            "Bad request.  Closing connection.\n");
+         al_connection_close (connection);
+         return -1;
       }
    }
 
@@ -98,8 +108,10 @@ int al_http_state_method (al_connection_t *connection, al_http_t *http,
       *uri = '\0';
       uri++;
    }
-   if (*uri == '\0')
+   if (*uri == '\0') {
+      /* TODO: error code. */
       return 0;
+   }
 
    /* is there an HTTP version string? */
    char *version_str;
@@ -123,8 +135,10 @@ int al_http_state_method (al_connection_t *connection, al_http_t *http,
 
    /* make sure a function exists for this verb. */
    al_http_func_def_t *fd;
-   if ((fd = al_http_get_func (http, verb)) == NULL)
+   if ((fd = al_http_get_func (http, verb)) == NULL) {
+      /* TODO: error code. */
       return 0;
+   }
 
    /* remember strings and version info. */
    al_util_replace_string (&(state->verb),        verb);
@@ -145,7 +159,7 @@ int al_http_state_method (al_connection_t *connection, al_http_t *http,
          state->state  = AL_STATE_HEADER;
          break;
       case AL_HTTP_INVALID:
-         /* TODO: error. */
+         /* TODO: error code. */
          return 0;
    }
 
@@ -162,8 +176,32 @@ int al_http_state_header (al_connection_t *connection, al_http_t *http,
       return 1;
    }
 
-   /* TODO: build our header. */
-   return 0;
+   /* make sure this is a proper header field. */
+   char *colon;
+   if ((colon = strchr (line, ':')) == NULL) {
+      /* TODO: error code. */
+      return 0;
+   }
+
+   /* it's valid! build our own modifiable string we can use to split
+    * into a name/value pair. */
+   size_t len       = strlen (line),
+          name_len  = colon - line;
+   char buf[len + 1];
+   snprintf (buf, len + 1, "%s", line);
+   char *name = buf, *value = buf + name_len + 1;
+
+   /* replace the colon with '\0' so 'name' is terminated. */
+   name[name_len] = '\0';
+
+   /* skip spaces for 'value'. */
+   while (*value == ' ') value++;
+
+   /* add to header. */
+   al_http_header_set (state, name, value);
+
+   /* return success. */
+   return 1;
 }
 
 AL_SERVER_FUNC (al_http_func_join)
@@ -217,7 +255,7 @@ al_http_func_def_t *al_http_set_func (al_http_t *http, char *verb,
    /* create a new function definition. */
    al_http_func_def_t *new = calloc (1, sizeof (al_http_func_def_t));
    new->http = http;
-   new->verb = strdup (verb);
+   al_util_replace_string (&(new->verb), verb);
    new->func = func;
 
    /* link it to our al_http_t. */
@@ -290,4 +328,59 @@ int al_http_write_string (al_connection_t *connection, al_http_t *http,
     * considerations.  this function exists to make sure that can happen
     * if/when the feature exists. */
    return al_connection_write_string (connection, string);
+}
+
+al_http_header_t *al_http_header_set (al_http_state_t *state, char *name,
+   char *value)
+{
+   /* if there's already a field with this name, change the value. */
+   al_http_header_t *h;
+   if ((h = al_http_header_get (state, name)) != NULL) {
+      al_util_replace_string (&(h->value), value);
+      return h;
+   }
+
+   /* create a new header and assign data. */
+   h = calloc (1, sizeof (al_http_header_t));
+   al_util_replace_string (&(h->name),  name);
+   al_util_replace_string (&(h->value), value);
+
+   /* link to the front and return our new header field. */
+   AL_LL_LINK_FRONT (h, state, prev, next, state, header_list);
+   return h;
+}
+
+al_http_header_t *al_http_header_get (al_http_state_t *state, char *name)
+{
+   if (state == NULL || name == NULL)
+      return NULL;
+   al_http_header_t *h;
+   for (h = state->header_list; h != NULL; h = h->next)
+      if (strcmp (h->name, name) == 0)
+         return h;
+   return NULL;
+}
+
+int al_http_header_free (al_http_header_t *h)
+{
+   /* free data. */
+   if (h->name)  free (h->name);
+   if (h->value) free (h->value);
+
+   /* unlink. */
+   AL_LL_UNLINK (h, prev, next, h->state, header_list);
+
+   /* free the structure itself and return success. */
+   free (h);
+   return 1;
+}
+
+int al_http_header_clear (al_http_state_t *state)
+{
+   int count = 0;
+   while (state->header_list) {
+      al_http_header_free (state->header_list);
+      count++;
+   }
+   return count;
 }

@@ -28,9 +28,17 @@ struct _al_http_state_t {
    al_flags_t flags;
    char *verb, *uri, *version_str;
    al_connection_t *connection;
+   al_http_header_t *header_list;
 };
 
-/* functions. */
+/* header information. */
+struct _al_http_header_t {
+   char *name, *value;
+   al_http_state_t *state;
+   al_http_header_t *prev, *next;
+};
+
+/* top-level http mangement functions. */
 al_http_t *al_http_init (al_server_t *server);
 al_http_t *al_http_get (al_server_t *server);
 al_http_state_t *al_http_get_state (al_connection_t *connection);
@@ -38,6 +46,8 @@ al_http_func_def_t *al_http_set_func (al_http_t *http, char *verb,
    al_http_func *func);
 al_http_func_def_t *al_http_get_func (al_http_t *http, char *verb);
 int al_http_free_func (al_http_func_def_t *rf);
+
+/* state management. */
 int al_http_state_method (al_connection_t *connection, al_http_t *http,
    al_http_state_t *state, char *line);
 int al_http_state_header (al_connection_t *connection, al_http_t *http,
@@ -49,6 +59,13 @@ int al_http_write_string (al_connection_t *connection, al_http_t *http,
 int al_http_state_reset (al_connection_t *connection, al_http_t *http,
    al_http_state_t *state);
 int al_http_state_cleanup (al_http_state_t *state);
+
+/* state header management. */
+al_http_header_t *al_http_header_set (al_http_state_t *state, char *name,
+   char *value);
+al_http_header_t *al_http_header_get (al_http_state_t *state, char *name);
+int al_http_header_free (al_http_header_t *h);
+int al_http_header_clear (al_http_state_t *state);
 
 /* hooks and default functions. */
 AL_MODULE_FUNC (al_http_data_free);

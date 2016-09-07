@@ -6,18 +6,48 @@
 
 AL_HTTP_FUNC (example_http_get)
 {
-   char buf[4096], *ch;
-   if ((ch = strchr (data, ' ')) != NULL)
-      *ch = '\0';
-   snprintf (buf, sizeof (buf),
-      "<!doctype html>\n"
-      "<html>\n"
-      "<body>\n"
-      "<h1>Wow!</h1>\n"
-      "Your path: %s\n"
-      "</body>\n"
-      "</html>\n", data);
-   al_connection_write_string (connection, buf);
+   char html[8192];
+   size_t len;
+
+   /* build a simple HTML page. */
+   len = snprintf (html, sizeof (html),
+      "<!doctype html>\r\n"
+      "<html>\r\n"
+      "<body>\r\n"
+      "<h1>%s request:</h1>\r\n"
+      "<table>\r\n"
+      "  <tr><td><b>URI</b>:</td><td>%s</td></tr>\r\n"
+      "  <tr><td><b>Version</b>:</td><td>%s</td></tr>\r\n"
+      "</table>\r\n"
+      "<h1>Header:</h1>\r\n"
+      "<table>\r\n", state->verb, state->uri, state->version_str);
+
+   /* barf all the header info back to the client. */
+   al_http_header_t *h;
+   for (h = state->header_list; h != NULL; h = h->next)
+      len += snprintf (html+ len, sizeof (html) - len,
+         "  <tr><td><b>%s</b>:</td><td>%s</td></tr>\r\n", h->name, h->value);
+
+   /* end our HTML. */
+   snprintf (html + len, sizeof (html) - len,
+      "</table>\r\n"
+      "</body>\r\n"
+      "</html>\r\n");
+
+   /* build our header AFTER the file so we have 'Content-Length'. */
+   char header[8192];
+   snprintf (header, sizeof (header),
+      "HTTP/1.1 200 OK\r\n"
+      "Cache-Control: no-cache\r\n"
+      "Connection: close\r\n"
+      "Content-Length: %d\r\n"
+      "\r\n", strlen (html));
+
+   /* send out our header and web content. */
+   al_connection_write_string (connection, header);
+   al_connection_write_string (connection, html);
+
+   /* return success. */
    return 1;
 }
 
