@@ -28,7 +28,6 @@ public:
     }
     
     virtual int serverFuncRead(al_connection_t *connection, int func, void *arg) {
-        
         al_connection_write_string(connection, "hello\n");
         return 0;
     }

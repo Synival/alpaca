@@ -44,8 +44,8 @@ struct _al_server_t {
    al_mutex_t *mutex;
    int mutex_count;
     
-   /* For compatability with C++ wrapper/ */
-   void *wrapper;
+   /* for compatability with C++ wrapper/ */
+   void *cpp_wrapper;
 };
 
 /* functions for server management. */

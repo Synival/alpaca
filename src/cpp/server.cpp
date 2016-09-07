@@ -3,7 +3,7 @@
  * C++ class wrapper for AlPACA's C functionality. */
 
 
-#include "alpaca/alpaca.hpp"
+#include "alpaca/server.hpp"
 #include <iostream>
 
 using namespace std;
@@ -21,7 +21,7 @@ int AlpacaServer::connect(int port, unsigned long int flags) {
         return 1;
     
     this->server = al_server_new(port, flags);
-    this->server->wrapper = this;
+    this->server->cpp_wrapper = this;
     if (!al_server_start(this->server)) {
         fprintf (stderr, "Server failed to start.\n");
         this->disconnect();
@@ -90,30 +90,30 @@ int AlpacaServer::serverFuncMax(al_connection_t *connection, int func, void *arg
 /* Internal static class member functions which wrap the server hooks that an AlPACA server must implement. */
 int AlpacaServer::_serverFuncJoin(al_server_t *this_server, al_connection_t *connection, int func, void *arg)
 {
-    AlpacaServer *this_ptr = reinterpret_cast <AlpacaServer *>(this_server->wrapper);
+    AlpacaServer *this_ptr = reinterpret_cast <AlpacaServer *>(this_server->cpp_wrapper);
     return this_ptr->serverFuncJoin(connection, func, arg);
 }
 
 int AlpacaServer::_serverFuncLeave(al_server_t *this_server, al_connection_t *connection, int func, void *arg)
 {
-    AlpacaServer *this_ptr = reinterpret_cast <AlpacaServer *>(this_server->wrapper);
+    AlpacaServer *this_ptr = reinterpret_cast <AlpacaServer *>(this_server->cpp_wrapper);
     return this_ptr->serverFuncLeave(connection, func, arg);
 }
 
 int AlpacaServer::_serverFuncRead(al_server_t *this_server, al_connection_t *connection, int func, void *arg)
 {
-    AlpacaServer *this_ptr = reinterpret_cast <AlpacaServer *>(this_server->wrapper);
+    AlpacaServer *this_ptr = reinterpret_cast <AlpacaServer *>(this_server->cpp_wrapper);
     return this_ptr->serverFuncRead(connection, func, arg);
 }
 
 int AlpacaServer::_serverFuncPreWrite(al_server_t *this_server, al_connection_t *connection, int func, void *arg)
 {
-    AlpacaServer *this_ptr = reinterpret_cast <AlpacaServer *>(this_server->wrapper);
+    AlpacaServer *this_ptr = reinterpret_cast <AlpacaServer *>(this_server->cpp_wrapper);
     return this_ptr->serverFuncPreWrite(connection, func, arg);
 }
 
 int AlpacaServer::_serverFuncMax(al_server_t *this_server, al_connection_t *connection, int func, void *arg)
 {
-    AlpacaServer *this_ptr = reinterpret_cast <AlpacaServer *>(this_server->wrapper);
+    AlpacaServer *this_ptr = reinterpret_cast <AlpacaServer *>(this_server->cpp_wrapper);
     return this_ptr->serverFuncMax(connection, func, arg);
 }
