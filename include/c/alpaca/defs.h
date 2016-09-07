@@ -57,6 +57,7 @@ typedef struct _al_module_t         al_module_t;
 typedef struct _al_http_func_def_t  al_http_func_def_t;
 typedef struct _al_http_t           al_http_t;
 typedef struct _al_http_state_t     al_http_state_t;
+typedef struct _al_http_header_t    al_http_header_t;
 
 /* function macros and typedefs. */
 #define AL_SERVER_FUNC(x) \
