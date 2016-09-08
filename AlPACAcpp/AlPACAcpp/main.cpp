@@ -1,10 +1,7 @@
-//
-//  main.cpp
-//  AlPACAcpp
-//
-//  Created by Ryan Holben on 9/5/16.
-//
-//
+/* main.cpp
+ * -------------
+ * Implementation of EchoServer using the C++ wrapper for AlPACA. */
+
 
 #include <iostream>
 #include "alpaca/alpaca.hpp"
