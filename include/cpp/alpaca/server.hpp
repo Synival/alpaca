@@ -5,7 +5,7 @@
 #ifndef __ALPACA_CPP_SERVER_HPP
 #define __ALPACA_CPP_SERVER_HPP
 
-#include <list>
+#include <unordered_map>
 
 extern "C" {
     #include "alpaca/alpaca.h"
@@ -16,7 +16,7 @@ extern "C" {
 class AlpacaServer {
 private:
     al_server_t *server = nullptr;
-    std::list<AlpacaConnection *> connections;
+    std::unordered_map<al_connection_t*, AlpacaConnection *> connections;
 
 public:
     AlpacaServer();
@@ -26,12 +26,13 @@ public:
     bool isConnected();
     void printStatus();
     int wait();
+    AlpacaConnection* getAlpacaConnection(al_connection_t *connection);
     
-    virtual int serverFuncJoin(al_connection_t *connection, int func, void *arg);
-    virtual int serverFuncLeave(al_connection_t *connection, int func, void *arg);
-    virtual int serverFuncRead(al_connection_t *connection, int func, void *arg);
-    virtual int serverFuncPreWrite(al_connection_t *connection, int func, void *arg);
-    virtual int serverFuncMax(al_connection_t *connection, int func, void *arg);
+    virtual int serverFuncJoin(AlpacaConnection *connection, int func, void *arg);
+    virtual int serverFuncLeave(AlpacaConnection *connection, int func, void *arg);
+    virtual int serverFuncRead(AlpacaConnection *connection, int func, void *arg);
+    virtual int serverFuncPreWrite(AlpacaConnection *connection, int func, void *arg);
+    virtual int serverFuncMax(AlpacaConnection *connection, int func, void *arg);
     
 private:
     static AL_SERVER_FUNC(_serverFuncJoin);

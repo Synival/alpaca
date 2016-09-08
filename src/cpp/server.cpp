@@ -61,28 +61,37 @@ int AlpacaServer::wait() {
     return al_server_wait(this->server);
 }
 
+AlpacaConnection* AlpacaServer::getAlpacaConnection(al_connection_t *connection) {
+    unordered_map<al_connection_t *, AlpacaConnection *>::const_iterator find = this->connections.find(connection);
+    if (find == this->connections.end())
+        return nullptr;
+    else
+        return find->second;
+}
+
+
 /* Hooks for various server events.  To be used, these should be overloaded in an inherited class. */
-int AlpacaServer::serverFuncJoin(al_connection_t *connection, int func, void *arg) {
+int AlpacaServer::serverFuncJoin(AlpacaConnection *connection, int func, void *arg) {
     cout << "This is an empty serverFuncJoin(), please write your own!\n";
     return 1;
 }
 
-int AlpacaServer::serverFuncLeave(al_connection_t *connection, int func, void *arg) {
+int AlpacaServer::serverFuncLeave(AlpacaConnection *connection, int func, void *arg) {
     cout << "This is an empty serverFuncLeave(), please write your own!\n";
-    return 0;
+    return 1;
 }
 
-int AlpacaServer::serverFuncRead(al_connection_t *connection, int func, void *arg) {
+int AlpacaServer::serverFuncRead(AlpacaConnection *connection, int func, void *arg) {
     cout << "This is an empty readFunc(), please write your own!\n";
     return 0;
 }
 
-int AlpacaServer::serverFuncPreWrite(al_connection_t *connection, int func, void *arg) {
+int AlpacaServer::serverFuncPreWrite(AlpacaConnection *connection, int func, void *arg) {
     cout << "This is an empty serverFuncPreWrite(), please write your own!\n";
     return 0;
 }
 
-int AlpacaServer::serverFuncMax(al_connection_t *connection, int func, void *arg) {
+int AlpacaServer::serverFuncMax(AlpacaConnection *connection, int func, void *arg) {
     cout << "This is an empty serverFuncMax(), please write your own!\n";
     return 0;
 }
@@ -90,45 +99,42 @@ int AlpacaServer::serverFuncMax(al_connection_t *connection, int func, void *arg
 /* Internal static class member functions which wrap the server hooks that an AlPACA server must implement. */
 int AlpacaServer::_serverFuncJoin(al_server_t *this_server, al_connection_t *connection, int func, void *arg)
 {
-    // Push the connection onto this->connections.
+    // Build an AlpacaConnection wrapper object and record the mapping from *connection to it.
     AlpacaServer *this_ptr = reinterpret_cast <AlpacaServer *>(this_server->cpp_wrapper);
-//    AlpacaConnection *conn = new AlpacaConnection(connection);
-    this_ptr->connections.push_back( new AlpacaConnection(connection) );
+    this_ptr->connections[connection] = new AlpacaConnection(connection);
     
-    return this_ptr->serverFuncJoin(connection, func, arg);
+    return this_ptr->serverFuncJoin(this_ptr->connections[connection], func, arg);
 }
 
 int AlpacaServer::_serverFuncLeave(al_server_t *this_server, al_connection_t *connection, int func, void *arg)
 {
     AlpacaServer *this_ptr = reinterpret_cast <AlpacaServer *>(this_server->cpp_wrapper);
-    int return_code = this_ptr->serverFuncLeave(connection, func, arg);
+    int return_code = this_ptr->serverFuncLeave(this_ptr->connections[connection], func, arg);
     
-    // Attempt to pop the connection from this->connections.
-    for (list<AlpacaConnection *>::iterator i = this_ptr->connections.begin(); i != this_ptr->connections.end(); i++) {
-        if ((*i)->equals(connection)) {
-            return_code = this_ptr->serverFuncLeave(connection, func, arg);
-            this_ptr->connections.erase(i);
-            return return_code;
-        }
+    /* Attempt to remove the connection from this->connections.
+       Delete the AlpacaConnection instance, then remove the container that pointed to it. */
+    unordered_map<al_connection_t *, AlpacaConnection *>::const_iterator find = this_ptr->connections.find(connection);
+    if (find != this_ptr->connections.end()) {
+        delete find->second;
+        this_ptr->connections.erase(find);
     }
-    
     return return_code;
 }
 
 int AlpacaServer::_serverFuncRead(al_server_t *this_server, al_connection_t *connection, int func, void *arg)
 {
     AlpacaServer *this_ptr = reinterpret_cast <AlpacaServer *>(this_server->cpp_wrapper);
-    return this_ptr->serverFuncRead(connection, func, arg);
+    return this_ptr->serverFuncRead(this_ptr->connections[connection], func, arg);
 }
 
 int AlpacaServer::_serverFuncPreWrite(al_server_t *this_server, al_connection_t *connection, int func, void *arg)
 {
     AlpacaServer *this_ptr = reinterpret_cast <AlpacaServer *>(this_server->cpp_wrapper);
-    return this_ptr->serverFuncPreWrite(connection, func, arg);
+    return this_ptr->serverFuncPreWrite(this_ptr->connections[connection], func, arg);
 }
 
 int AlpacaServer::_serverFuncMax(al_server_t *this_server, al_connection_t *connection, int func, void *arg)
 {
     AlpacaServer *this_ptr = reinterpret_cast <AlpacaServer *>(this_server->cpp_wrapper);
-    return this_ptr->serverFuncMax(connection, func, arg);
+    return this_ptr->serverFuncMax(this_ptr->connections[connection], func, arg);
 }

@@ -17,6 +17,14 @@ AlpacaConnection::~AlpacaConnection() {
     cout << "Closed a connection.\n";
 }
 
-bool AlpacaConnection::equals(al_connection_t *rhs) {
+bool AlpacaConnection::operator==(const AlpacaConnection &rhs) {
+    return this->connection == rhs.connection;
+}
+
+bool AlpacaConnection::operator==(const al_connection_t *rhs) {
     return this->connection == rhs;
+}
+
+int AlpacaConnection::writeString(char *string) {
+    return al_connection_write_string(this->connection, string);
 }

@@ -16,7 +16,9 @@ private:
 public:
     AlpacaConnection(al_connection_t *connection);
     ~AlpacaConnection();
-    bool equals(al_connection_t *rhs);
+    bool operator==(const AlpacaConnection &rhs);
+    bool operator==(const al_connection_t *rhs);
+    int writeString(char *string);
 };
 
 #endif
