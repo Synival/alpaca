@@ -177,12 +177,28 @@
 		6DFACC891D821045001B0B48 /* servers */ = {
 			isa = PBXGroup;
 			children = (
+				6DFACC911D8265F1001B0B48 /* basicserver */,
+				6DFACC901D8265EC001B0B48 /* emptyserver */,
+			);
+			name = servers;
+			sourceTree = "<group>";
+		};
+		6DFACC901D8265EC001B0B48 /* emptyserver */ = {
+			isa = PBXGroup;
+			children = (
 				6DFACC8A1D821053001B0B48 /* emptyserver.cpp */,
 				6DFACC8C1D82105C001B0B48 /* emptyserver.hpp */,
+			);
+			name = emptyserver;
+			sourceTree = "<group>";
+		};
+		6DFACC911D8265F1001B0B48 /* basicserver */ = {
+			isa = PBXGroup;
+			children = (
 				6DFACC8F1D8211CF001B0B48 /* basicserver.hpp */,
 				6DFACC8D1D8211C7001B0B48 /* basicserver.cpp */,
 			);
-			name = servers;
+			name = basicserver;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

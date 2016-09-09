@@ -21,8 +21,8 @@ private:
 public:
     AlpacaServer();
     ~AlpacaServer();
-    int connect(int port, unsigned long int flags = 0);
-    int disconnect();
+    int open(int port, unsigned long int flags = 0);
+    int close();
     bool isConnected();
     void printStatus();
     int wait();

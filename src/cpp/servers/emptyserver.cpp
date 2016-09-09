@@ -20,6 +20,7 @@ int EmptyServer::serverFuncRead(AlpacaConnection *connection, int func, void *ar
 int EmptyServer::serverFuncPreWrite(AlpacaConnection *connection, int func, void *arg) {
     return 0;
 }
+
 int EmptyServer::serverFuncMax(AlpacaConnection *connection, int func, void *arg) {
     return 0;
 }

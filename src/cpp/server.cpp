@@ -14,10 +14,10 @@ AlpacaServer::AlpacaServer() {
 }
 
 AlpacaServer::~AlpacaServer() {
-    this->disconnect();
+    this->close();
 }
 
-int AlpacaServer::connect(int port, unsigned long int flags) {
+int AlpacaServer::open(int port, unsigned long int flags) {
     if (this->server != nullptr)
         return 1;
     
@@ -25,7 +25,7 @@ int AlpacaServer::connect(int port, unsigned long int flags) {
     this->server->cpp_wrapper = this;
     if (!al_server_start(this->server)) {
         fprintf (stderr, "Server failed to start.\n");
-        this->disconnect();
+        this->close();
         return 2;
     }
 
@@ -38,7 +38,7 @@ int AlpacaServer::connect(int port, unsigned long int flags) {
     return 0;
 }
 
-int AlpacaServer::disconnect() {
+int AlpacaServer::close() {
     if (this->server == nullptr)
         return 1;
     
