@@ -14,7 +14,6 @@
 #include "alpaca/connections.h"
 #include "alpaca/modules.h"
 #include "alpaca/mutex.h"
-#include "alpaca/rest.h"
 
 #include "alpaca/server.h"
 
