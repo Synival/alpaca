@@ -14,6 +14,7 @@
 #include "alpaca/connections.h"
 #include "alpaca/modules.h"
 #include "alpaca/mutex.h"
+#include "alpaca/rest.h"
 
 #include "alpaca/server.h"
 
@@ -41,7 +42,6 @@ al_server_t *al_server_new (int port, al_flags_t flags)
 
    /* set port + flags. */
    al_server_set_flags (new, port, flags);
-
 
    /* we did it! */
    return new;
@@ -279,6 +279,7 @@ int al_server_loop_func (al_server_t *server)
 
    /* before we wait, make sure our data is sane. */
    al_server_lock (server);
+   server->state |= AL_SERVER_STATE_IN_LOOP;
 
    /* some silly preparations for accept(). */
    client_addr_size = sizeof (struct sockaddr_in);
@@ -325,6 +326,7 @@ int al_server_loop_func (al_server_t *server)
       if (errno != EINTR)
          AL_ERROR ("select() error: %d\n", errno);
       server->state |= AL_SERVER_STATE_QUIT;
+      server->state &= ~AL_SERVER_STATE_IN_LOOP;
       return 0;
    }
 
