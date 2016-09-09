@@ -50,9 +50,11 @@ struct _al_server_t {
 
 /* functions for server management. */
 al_server_t *al_server_new (int port, al_flags_t flags);
+int al_server_set_flags (al_server_t *server, int port, al_flags_t flags);
 int al_server_is_open (al_server_t *server);
 int al_server_is_running (al_server_t *server);
 int al_server_is_quitting (al_server_t *server);
+int al_server_is_in_loop (al_server_t *server);
 int al_server_close (al_server_t *server);
 int al_server_open (al_server_t *server);
 void *al_server_pthread_func (void *arg);
@@ -72,5 +74,6 @@ int al_server_write_string (al_server_t *server, char *string);
 al_module_t *al_server_module_new (al_server_t *server, char *name, void *data,
    size_t data_size, al_module_func *free_func);
 al_module_t *al_server_module_get (al_server_t *server, char *name);
+int al_server_in_thread (al_server_t *server);
 
 #endif

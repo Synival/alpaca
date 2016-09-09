@@ -2,6 +2,7 @@
  * -------------
  * Implementation for BasicServer.  Serves as an example server with some basic functionality. */
 
+#include <string.h>
 
 #include "alpaca/servers/basicserver.hpp"
 

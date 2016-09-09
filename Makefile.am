@@ -28,7 +28,10 @@ libalpaca_cpp_la_SOURCES = \
    src/c/rest.c \
    src/c/server.c \
    src/c/utils.c \
-   src/cpp/alpaca.cpp
+   src/cpp/server.cpp \
+   src/cpp/connections.cpp \
+   src/cpp/servers/basicserver.cpp \
+   src/cpp/servers/emptyserver.cpp
 
 otherincludedir = \
    $(includedir)/alpaca

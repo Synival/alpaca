@@ -19,7 +19,9 @@
 #define AL_SERVER_FUNC_LEAVE     1
 #define AL_SERVER_FUNC_READ      2
 #define AL_SERVER_FUNC_PRE_WRITE 3
-#define AL_SERVER_FUNC_MAX       4
+#define AL_SERVER_FUNC_STOPPED   4
+#define AL_SERVER_FUNC_CLOSED    5
+#define AL_SERVER_FUNC_MAX       8
 
 /* server state flags.  unless you're working on server code,
  * these are read-only. */
@@ -27,9 +29,11 @@
 #define AL_SERVER_STATE_QUIT    0x02
 #define AL_SERVER_STATE_RUNNING 0x04
 #define AL_SERVER_STATE_PIPE    0x08
+#define AL_SERVER_STATE_IN_LOOP 0x10
 
 /* server flags. */
 #define AL_SERVER_REST  0x01
+#define AL_SERVER_CLOSE_AFTER_STOP  0x02
 
 /* type definitions. */
 typedef unsigned long int al_flags_t;

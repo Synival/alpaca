@@ -159,7 +159,10 @@ am_libalpaca_cpp_la_OBJECTS = src/c/libalpaca_cpp_la-connections.lo \
 	src/c/libalpaca_cpp_la-rest.lo \
 	src/c/libalpaca_cpp_la-server.lo \
 	src/c/libalpaca_cpp_la-utils.lo \
-	src/cpp/libalpaca_cpp_la-alpaca.lo
+	src/cpp/libalpaca_cpp_la-server.lo \
+	src/cpp/libalpaca_cpp_la-connections.lo \
+	src/cpp/servers/libalpaca_cpp_la-basicserver.lo \
+	src/cpp/servers/libalpaca_cpp_la-emptyserver.lo
 libalpaca_cpp_la_OBJECTS = $(am_libalpaca_cpp_la_OBJECTS)
 libalpaca_cpp_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX \
 	$(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CXXLD) \
@@ -445,7 +448,10 @@ libalpaca_cpp_la_SOURCES = \
    src/c/rest.c \
    src/c/server.c \
    src/c/utils.c \
-   src/cpp/alpaca.cpp
+   src/cpp/server.cpp \
+   src/cpp/connections.cpp \
+   src/cpp/servers/basicserver.cpp \
+   src/cpp/servers/emptyserver.cpp
 
 otherincludedir = \
    $(includedir)/alpaca
@@ -601,8 +607,22 @@ src/cpp/$(am__dirstamp):
 src/cpp/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) src/cpp/$(DEPDIR)
 	@: > src/cpp/$(DEPDIR)/$(am__dirstamp)
-src/cpp/libalpaca_cpp_la-alpaca.lo: src/cpp/$(am__dirstamp) \
+src/cpp/libalpaca_cpp_la-server.lo: src/cpp/$(am__dirstamp) \
 	src/cpp/$(DEPDIR)/$(am__dirstamp)
+src/cpp/libalpaca_cpp_la-connections.lo: src/cpp/$(am__dirstamp) \
+	src/cpp/$(DEPDIR)/$(am__dirstamp)
+src/cpp/servers/$(am__dirstamp):
+	@$(MKDIR_P) src/cpp/servers
+	@: > src/cpp/servers/$(am__dirstamp)
+src/cpp/servers/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) src/cpp/servers/$(DEPDIR)
+	@: > src/cpp/servers/$(DEPDIR)/$(am__dirstamp)
+src/cpp/servers/libalpaca_cpp_la-basicserver.lo:  \
+	src/cpp/servers/$(am__dirstamp) \
+	src/cpp/servers/$(DEPDIR)/$(am__dirstamp)
+src/cpp/servers/libalpaca_cpp_la-emptyserver.lo:  \
+	src/cpp/servers/$(am__dirstamp) \
+	src/cpp/servers/$(DEPDIR)/$(am__dirstamp)
 
 libalpaca_cpp.la: $(libalpaca_cpp_la_OBJECTS) $(libalpaca_cpp_la_DEPENDENCIES) $(EXTRA_libalpaca_cpp_la_DEPENDENCIES) 
 	$(AM_V_CXXLD)$(libalpaca_cpp_la_LINK) -rpath $(libdir) $(libalpaca_cpp_la_OBJECTS) $(libalpaca_cpp_la_LIBADD) $(LIBS)
@@ -656,6 +676,8 @@ mostlyclean-compile:
 	-rm -f src/c/*.lo
 	-rm -f src/cpp/*.$(OBJEXT)
 	-rm -f src/cpp/*.lo
+	-rm -f src/cpp/servers/*.$(OBJEXT)
+	-rm -f src/cpp/servers/*.lo
 	-rm -f src/examples-c/*.$(OBJEXT)
 
 distclean-compile:
@@ -676,7 +698,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-rest.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-server.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-utils.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@src/cpp/$(DEPDIR)/libalpaca_cpp_la-alpaca.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/cpp/$(DEPDIR)/libalpaca_cpp_la-connections.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/cpp/$(DEPDIR)/libalpaca_cpp_la-server.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/cpp/servers/$(DEPDIR)/libalpaca_cpp_la-basicserver.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/cpp/servers/$(DEPDIR)/libalpaca_cpp_la-emptyserver.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/examples-c/$(DEPDIR)/echoserver-echoserver.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/examples-c/$(DEPDIR)/restserver-restserver.Po@am__quote@
 
@@ -854,12 +879,33 @@ src/examples-c/restserver-restserver.obj: src/examples-c/restserver.c
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
 
-src/cpp/libalpaca_cpp_la-alpaca.lo: src/cpp/alpaca.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libalpaca_cpp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT src/cpp/libalpaca_cpp_la-alpaca.lo -MD -MP -MF src/cpp/$(DEPDIR)/libalpaca_cpp_la-alpaca.Tpo -c -o src/cpp/libalpaca_cpp_la-alpaca.lo `test -f 'src/cpp/alpaca.cpp' || echo '$(srcdir)/'`src/cpp/alpaca.cpp
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/cpp/$(DEPDIR)/libalpaca_cpp_la-alpaca.Tpo src/cpp/$(DEPDIR)/libalpaca_cpp_la-alpaca.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/cpp/alpaca.cpp' object='src/cpp/libalpaca_cpp_la-alpaca.lo' libtool=yes @AMDEPBACKSLASH@
+src/cpp/libalpaca_cpp_la-server.lo: src/cpp/server.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libalpaca_cpp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT src/cpp/libalpaca_cpp_la-server.lo -MD -MP -MF src/cpp/$(DEPDIR)/libalpaca_cpp_la-server.Tpo -c -o src/cpp/libalpaca_cpp_la-server.lo `test -f 'src/cpp/server.cpp' || echo '$(srcdir)/'`src/cpp/server.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/cpp/$(DEPDIR)/libalpaca_cpp_la-server.Tpo src/cpp/$(DEPDIR)/libalpaca_cpp_la-server.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/cpp/server.cpp' object='src/cpp/libalpaca_cpp_la-server.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libalpaca_cpp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o src/cpp/libalpaca_cpp_la-alpaca.lo `test -f 'src/cpp/alpaca.cpp' || echo '$(srcdir)/'`src/cpp/alpaca.cpp
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libalpaca_cpp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o src/cpp/libalpaca_cpp_la-server.lo `test -f 'src/cpp/server.cpp' || echo '$(srcdir)/'`src/cpp/server.cpp
+
+src/cpp/libalpaca_cpp_la-connections.lo: src/cpp/connections.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libalpaca_cpp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT src/cpp/libalpaca_cpp_la-connections.lo -MD -MP -MF src/cpp/$(DEPDIR)/libalpaca_cpp_la-connections.Tpo -c -o src/cpp/libalpaca_cpp_la-connections.lo `test -f 'src/cpp/connections.cpp' || echo '$(srcdir)/'`src/cpp/connections.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/cpp/$(DEPDIR)/libalpaca_cpp_la-connections.Tpo src/cpp/$(DEPDIR)/libalpaca_cpp_la-connections.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/cpp/connections.cpp' object='src/cpp/libalpaca_cpp_la-connections.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libalpaca_cpp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o src/cpp/libalpaca_cpp_la-connections.lo `test -f 'src/cpp/connections.cpp' || echo '$(srcdir)/'`src/cpp/connections.cpp
+
+src/cpp/servers/libalpaca_cpp_la-basicserver.lo: src/cpp/servers/basicserver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libalpaca_cpp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT src/cpp/servers/libalpaca_cpp_la-basicserver.lo -MD -MP -MF src/cpp/servers/$(DEPDIR)/libalpaca_cpp_la-basicserver.Tpo -c -o src/cpp/servers/libalpaca_cpp_la-basicserver.lo `test -f 'src/cpp/servers/basicserver.cpp' || echo '$(srcdir)/'`src/cpp/servers/basicserver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/cpp/servers/$(DEPDIR)/libalpaca_cpp_la-basicserver.Tpo src/cpp/servers/$(DEPDIR)/libalpaca_cpp_la-basicserver.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/cpp/servers/basicserver.cpp' object='src/cpp/servers/libalpaca_cpp_la-basicserver.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libalpaca_cpp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o src/cpp/servers/libalpaca_cpp_la-basicserver.lo `test -f 'src/cpp/servers/basicserver.cpp' || echo '$(srcdir)/'`src/cpp/servers/basicserver.cpp
+
+src/cpp/servers/libalpaca_cpp_la-emptyserver.lo: src/cpp/servers/emptyserver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libalpaca_cpp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT src/cpp/servers/libalpaca_cpp_la-emptyserver.lo -MD -MP -MF src/cpp/servers/$(DEPDIR)/libalpaca_cpp_la-emptyserver.Tpo -c -o src/cpp/servers/libalpaca_cpp_la-emptyserver.lo `test -f 'src/cpp/servers/emptyserver.cpp' || echo '$(srcdir)/'`src/cpp/servers/emptyserver.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) src/cpp/servers/$(DEPDIR)/libalpaca_cpp_la-emptyserver.Tpo src/cpp/servers/$(DEPDIR)/libalpaca_cpp_la-emptyserver.Plo
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='src/cpp/servers/emptyserver.cpp' object='src/cpp/servers/libalpaca_cpp_la-emptyserver.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libalpaca_cpp_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o src/cpp/servers/libalpaca_cpp_la-emptyserver.lo `test -f 'src/cpp/servers/emptyserver.cpp' || echo '$(srcdir)/'`src/cpp/servers/emptyserver.cpp
 
 AlPACAcpp/AlPACAcpp/cpptest-main.o: AlPACAcpp/AlPACAcpp/main.cpp
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(cpptest_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT AlPACAcpp/AlPACAcpp/cpptest-main.o -MD -MP -MF AlPACAcpp/AlPACAcpp/$(DEPDIR)/cpptest-main.Tpo -c -o AlPACAcpp/AlPACAcpp/cpptest-main.o `test -f 'AlPACAcpp/AlPACAcpp/main.cpp' || echo '$(srcdir)/'`AlPACAcpp/AlPACAcpp/main.cpp
@@ -882,6 +928,7 @@ clean-libtool:
 	-rm -rf .libs _libs
 	-rm -rf src/c/.libs src/c/_libs
 	-rm -rf src/cpp/.libs src/cpp/_libs
+	-rm -rf src/cpp/servers/.libs src/cpp/servers/_libs
 
 distclean-libtool:
 	-rm -f libtool config.lt
@@ -1168,6 +1215,8 @@ distclean-generic:
 	-rm -f src/c/$(am__dirstamp)
 	-rm -f src/cpp/$(DEPDIR)/$(am__dirstamp)
 	-rm -f src/cpp/$(am__dirstamp)
+	-rm -f src/cpp/servers/$(DEPDIR)/$(am__dirstamp)
+	-rm -f src/cpp/servers/$(am__dirstamp)
 	-rm -f src/examples-c/$(DEPDIR)/$(am__dirstamp)
 	-rm -f src/examples-c/$(am__dirstamp)
 
@@ -1181,7 +1230,7 @@ clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
 
 distclean: distclean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
-	-rm -rf AlPACAcpp/AlPACAcpp/$(DEPDIR) src/c/$(DEPDIR) src/cpp/$(DEPDIR) src/examples-c/$(DEPDIR)
+	-rm -rf AlPACAcpp/AlPACAcpp/$(DEPDIR) src/c/$(DEPDIR) src/cpp/$(DEPDIR) src/cpp/servers/$(DEPDIR) src/examples-c/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-hdr distclean-libtool distclean-tags
@@ -1229,7 +1278,7 @@ installcheck-am:
 maintainer-clean: maintainer-clean-am
 	-rm -f $(am__CONFIG_DISTCLEAN_FILES)
 	-rm -rf $(top_srcdir)/autom4te.cache
-	-rm -rf AlPACAcpp/AlPACAcpp/$(DEPDIR) src/c/$(DEPDIR) src/cpp/$(DEPDIR) src/examples-c/$(DEPDIR)
+	-rm -rf AlPACAcpp/AlPACAcpp/$(DEPDIR) src/c/$(DEPDIR) src/cpp/$(DEPDIR) src/cpp/servers/$(DEPDIR) src/examples-c/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

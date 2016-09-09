@@ -23,12 +23,9 @@
  * Creates a new server instance.  This is the top-level structure for all
  * AlPACA routines and should generally be called first.
  *
- * port:  Port opened for listening (ex: 1234)
+ * port:  Port used for listening (ex: 80 for HTTP)
  * flags: Optional bit flags to enable certain features or modify behavior.
- *        Flags are:
- *
- *        AL_SERVER_REST: Enable functional hooks for REST API usage via
- *                        al_rest_init().  See 'rest.c' for details.
+ *        (see al_server_set_flags() for details
  *
  * Return value: A pointer to a new server instance or NULL on failure.
  */
@@ -36,12 +33,12 @@ al_server_t *al_server_new (int port, al_flags_t flags)
 {
    al_server_t *new;
 
-   /* create a mostly-empty structure with some simple settings. */
+   /* create an empty structure with a mutex. */
    new = calloc (1, sizeof (al_server_t));
-   new->port = port;
-
-   /* create a mutex for our running thread. */
    new->mutex = al_mutex_new ();
+
+   /* set port + flags. */
+   al_server_set_flags (new, port, flags);
 
    /* is this a RESTful service? */
    if (flags & AL_SERVER_REST)
@@ -51,9 +48,37 @@ al_server_t *al_server_new (int port, al_flags_t flags)
    return new;
 }
 
+/* al_server_set_flags():
+ * ----------------------
+ * Sets the port and flags of the server before the connection is opened.
+ * Necessary if the server owner wants to shut down the server, change
+ * settings, and start it up again.
+ *
+ * server: Server whose flags are being modified
+ * port:   Port used for listening (ex: 80 for HTTP)
+ * flags:  Optional bit flags to enable certain features or modify behavior.
+ *    (no flags yet)
+ */
+int al_server_set_flags (al_server_t *server, int port, al_flags_t flags)
+{
+   /* don't allow port + flags to be set if the server is currently open. */
+   al_server_lock (server);
+   if (al_server_is_open (server)) {
+      al_server_unlock (server);
+      return 0;
+   }
+
+   /* server is closed; set port + flags and return success. */
+   server->port  = port;
+   server->flags = flags;
+   al_server_unlock (server);
+   return 1;
+}
+
 /* al_server_is_open():      (checks AL_SERVER_STATE_OPEN)
  * al_server_is_running():   (checks AL_SERVER_STATE_RUNNING)
  * al_server_is_quitting():  (checks AL_SERVER_STATE_QUITTING)
+ * al_server_is_in_loop():   (checks AL_SERVER_STATE_IN_LOOP)
  * -------------------------------------------------------------
  * Return value: 1 if the flag checked is on, otherwise 0.
  */
@@ -63,6 +88,8 @@ int al_server_is_running (al_server_t *server)
    { return (server->state & AL_SERVER_STATE_RUNNING) ? 1 : 0; }
 int al_server_is_quitting (al_server_t *server)
    { return (server->state & AL_SERVER_STATE_QUIT) ? 1 : 0; }
+int al_server_is_in_loop (al_server_t *server)
+   { return (server->state & AL_SERVER_STATE_IN_LOOP) ? 1 : 0; }
 
 /* al_server_lock():
  * -----------------
@@ -100,12 +127,19 @@ int al_server_unlock (al_server_t *server)
  * ------------------
  * Closes all the server's connections, the pipe, and the listening socket.
  * If the thread for the server loop is running, it is closed before
- * proceeding.
+ * proceeding.  This function cannot be called from within the server loop.
  *
  * Returns 1 if all sockets have been closed, 0 if the server wasn't open.
  */
 int al_server_close (al_server_t *server)
 {
+   /* although this can be run from the *thread*, it can't be run from
+    * inside the server *loop*, which relies on the server being open. */
+   if (al_server_is_in_loop (server)) {
+      AL_ERROR ("al_server_close() called from within server loop!\n");
+      return 0;
+   }
+
    /* don't do anything if the server is currently closed. */
    if (!al_server_is_open (server))
       return 0;
@@ -134,9 +168,10 @@ int al_server_close (al_server_t *server)
       close (server->pipe_fd[1]);
    }
 
-   /* indicate that the server is no longer open, relinquish control,
-    * and return success. */
+   /* indicate that the server is no longer open. */
    server->state &= ~AL_SERVER_STATE_OPEN;
+
+   /* relinquish control and return success. */
    al_server_unlock (server);
    return 1;
 }
@@ -245,6 +280,7 @@ int al_server_loop_func (al_server_t *server)
 
    /* before we wait, make sure our data is sane. */
    al_server_lock (server);
+   server->state |= AL_SERVER_STATE_IN_LOOP;
 
    /* some silly preparations for accept(). */
    client_addr_size = sizeof (struct sockaddr_in);
@@ -360,6 +396,7 @@ int al_server_loop_func (al_server_t *server)
    }
 
    /* unlock server and return success. */
+   server->state &= ~AL_SERVER_STATE_IN_LOOP;
    al_server_unlock (server);
    return 1;
 }
@@ -369,8 +406,8 @@ int al_server_loop_func (al_server_t *server)
  * Function hook passed to our POSIX thread.  This function is the main server
  * loop, which will continuously manage connections via al_server_loop_func()
  * until given the shutdown notice via toggling AL_SERVER_QUIT in the server
- * state.  When the loop ends, all connections including the listening socket
- * are closed.
+ * state.  If the al_server_open() was called from al_server_start(), all
+ * connections including the listening socket are closed.
  */
 void *al_server_pthread_func (void *arg)
 {
@@ -381,23 +418,30 @@ void *al_server_pthread_func (void *arg)
    while (!al_server_is_quitting (server))
       al_server_loop_func (server);
 
-   /* close our server. */
-   al_server_close (server);
-
-   /* mark that we're no longer running and return success. */
+   /* perform clean up.  mark that we're no longer running. */
+   al_server_lock (server);
    server->state &= ~AL_SERVER_STATE_RUNNING;
+
+   /* if our connection was opened from al_server_start(), make sure we close
+    * it here, too. */
+   if (server->flags & AL_SERVER_CLOSE_AFTER_STOP) {
+      al_server_close (server);
+      server->flags &= ~AL_SERVER_CLOSE_AFTER_STOP;
+   }
+   al_server_unlock (server);
+
+   /* we're done. */
    return NULL;
 }
 
 /* al_server_start():
  * -----------------
- * Attempt to:
- *
- *    1) open the server's port for listening, and
- *    2) start the server loop in a background thread.
+ * Start the server loop in a background thread called the 'server thread'.
+ * For convenience, if the listening socket has not yet been opened, open it
+ * here and give the responsibility to close it to the server thread.
  *
  * Returns 1 on success, 0 if the server was already running or the listening
- * port couldn't be opened.
+ * socket couldn't be opened.
  */
 int al_server_start (al_server_t *server)
 {
@@ -408,15 +452,17 @@ int al_server_start (al_server_t *server)
       return 0;
 
    /* don't do anything if we couldn't open the server. */
-   if (!al_server_is_open (server))
+   if (!al_server_is_open (server)) {
       if (!al_server_open (server))
          return 0;
+      server->flags |= AL_SERVER_CLOSE_AFTER_STOP;
+   }
 
    /* attempt to start a pthread. */
    server->state |= AL_SERVER_STATE_RUNNING;
    if ((res = pthread_create (&(server->pthread), NULL, al_server_pthread_func,
                               (void *) server)) != 0) {
-      server->state &= ~AL_SERVER_STATE_RUNNING;
+      server->state &= ~(AL_SERVER_STATE_RUNNING | AL_SERVER_CLOSE_AFTER_STOP);
       AL_ERROR ("Unable to start server (Error: %d)\n", res);
       return 0;
    }
@@ -430,10 +476,15 @@ int al_server_start (al_server_t *server)
  * Wait patiently for the server loop's thread to end from a shutdown signal.
  *
  * Return value: Returns 1 if the server shut down normally,
- *               returns 0 if the server wasn't running.
+ *               returns 0 if the server wasn't running or if we're currently
+ *                  in the server thread (this is an error).
  */
 int al_server_wait (al_server_t *server)
 {
+   if (al_server_in_thread (server)) {
+      AL_ERROR ("al_server_wait() called within server thread!\n");
+      return 0;
+   }
    if (!al_server_is_running (server))
       return 0;
    pthread_join (server->pthread, NULL);
@@ -493,6 +544,12 @@ int al_server_stop (al_server_t *server)
  */
 int al_server_free (al_server_t *server)
 {
+   /* don't allow the server to be freed from within the server thread. */
+   if (al_server_in_thread (server)) {
+      AL_ERROR ("al_server_free() called from within server thread!\n");
+      return 0;
+   }
+
    /* stop our server. */
    if (al_server_is_running (server)) {
       al_server_stop (server);
@@ -656,3 +713,21 @@ al_module_t *al_server_module_new (al_server_t *server, char *name, void *data,
  */
 al_module_t *al_server_module_get (al_server_t *server, char *name)
    { return al_module_get (&(server->module_list), name); }
+
+/* al_server_in_thread():
+ * ----------------------
+ * Check if pthread_self() matches the server thread.
+ *
+ * server: The server whose thread we're checking.
+ *
+ * Returns: 0 if the server is not running or pthread_self() doesn't match.
+ *          1 if the server is running and pthread_self() matches.
+ */
+int al_server_in_thread (al_server_t *server)
+{
+   if (!al_server_is_running (server))
+      return 0;
+   if (pthread_equal (pthread_self(), server->pthread))
+      return 1;
+   return 0;
+}

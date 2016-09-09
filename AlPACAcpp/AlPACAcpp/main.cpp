@@ -4,6 +4,7 @@
 
 
 #include <iostream>
+#include <string.h>
 #include "alpaca/alpaca.hpp"
 #include "alpaca/servers/basicserver.hpp"
 extern "C" {

@@ -44,7 +44,7 @@ int al_mutex_lock (al_mutex_t *mutex)
 
    /* if we own this thread and we've already locked it,
     * increment our lock counter. */
-   if (mutex->locks > 0 && mutex->p_thread == self) {
+   if (mutex->locks > 0 && pthread_equal (mutex->p_thread, self)) {
       r = 0;
       mutex->locks++;
    }
@@ -72,7 +72,7 @@ int al_mutex_unlock (al_mutex_t *mutex)
       return EPERM;
    /* if we own this lock and there are recursive locks,
     * decrement the lock counter and return success. */
-   if (mutex->p_thread == self && mutex->locks > 1) {
+   if (mutex->locks > 1 && pthread_equal (mutex->p_thread, self)) {
       mutex->locks--;
       return 0;
    }
