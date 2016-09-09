@@ -10,15 +10,20 @@ extern "C" {
 }
 
 class AlpacaConnection {
+//public:
 private:
     al_connection_t *connection;
     
 public:
     AlpacaConnection(al_connection_t *connection);
     ~AlpacaConnection();
+    int disconnect();
     bool operator==(const AlpacaConnection &rhs);
     bool operator==(const al_connection_t *rhs);
     int writeString(char *string);
+    al_flags_t flags();
+    int connectionWrote();
+    al_connection_t * getPointer();
 };
 
 #endif

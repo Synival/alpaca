@@ -27,6 +27,9 @@ public:
     void printStatus();
     int wait();
     AlpacaConnection* getAlpacaConnection(al_connection_t *connection);
+    int broadcastGlobalMessage(char *string);
+    size_t numConnections();
+    int disconnectClient(AlpacaConnection *connection);
     
     virtual int serverFuncJoin(AlpacaConnection *connection, int func, void *arg);
     virtual int serverFuncLeave(AlpacaConnection *connection, int func, void *arg);
@@ -41,11 +44,8 @@ private:
     static AL_SERVER_FUNC(_serverFuncPreWrite);
     static AL_SERVER_FUNC(_serverFuncMax);
     
-//    static int _serverFuncJoin(al_server_t *this_server, al_connection_t *connection, int func, void *arg);
-//    static int _serverFuncLeave(al_server_t *this_server, al_connection_t *connection, int func, void *arg);
-//    static int _serverFuncRead(al_server_t *this_server, al_connection_t *connection, int func, void *arg);
-//    static int _serverFuncPreWrite(al_server_t *this_server, al_connection_t *connection, int func, void *arg);
-//    static int _serverFuncMax(al_server_t *this_server, al_connection_t *connection, int func, void *arg);
+    int popConnection(AlpacaConnection *connection);
+    int popConnection(al_connection_t *connection);
 };
 
 #endif

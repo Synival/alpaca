@@ -17,6 +17,8 @@
 		6D4A0DCC1D7E5E6D00B35889 /* server.c in Sources */ = {isa = PBXBuildFile; fileRef = 6D4A0DC51D7E5E6D00B35889 /* server.c */; };
 		6D4A0DCD1D7E5E6D00B35889 /* utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 6D4A0DC61D7E5E6D00B35889 /* utils.c */; };
 		6DAFC0C41D80A374000FA01D /* server.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6DAFC0C31D80A374000FA01D /* server.cpp */; };
+		6DFACC8B1D821053001B0B48 /* emptyserver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6DFACC8A1D821053001B0B48 /* emptyserver.cpp */; };
+		6DFACC8E1D8211C7001B0B48 /* basicserver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6DFACC8D1D8211C7001B0B48 /* basicserver.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -58,6 +60,10 @@
 		6DAFC0C11D80A330000FA01D /* connections.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = connections.hpp; path = ../../include/cpp/alpaca/connections.hpp; sourceTree = "<group>"; };
 		6DAFC0C21D80A330000FA01D /* server.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = server.hpp; path = ../../include/cpp/alpaca/server.hpp; sourceTree = "<group>"; };
 		6DAFC0C31D80A374000FA01D /* server.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = server.cpp; path = ../../src/cpp/server.cpp; sourceTree = "<group>"; };
+		6DFACC8A1D821053001B0B48 /* emptyserver.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = emptyserver.cpp; path = ../../src/cpp/servers/emptyserver.cpp; sourceTree = "<group>"; };
+		6DFACC8C1D82105C001B0B48 /* emptyserver.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = emptyserver.hpp; path = ../../include/cpp/alpaca/servers/emptyserver.hpp; sourceTree = "<group>"; };
+		6DFACC8D1D8211C7001B0B48 /* basicserver.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = basicserver.cpp; path = ../../src/cpp/servers/basicserver.cpp; sourceTree = "<group>"; };
+		6DFACC8F1D8211CF001B0B48 /* basicserver.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = basicserver.hpp; path = ../../include/cpp/alpaca/servers/basicserver.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,11 +98,9 @@
 		6D4A0DA11D7E5B1800B35889 /* AlPACAcpp */ = {
 			isa = PBXGroup;
 			children = (
-				6D4A0DA91D7E5C7300B35889 /* alpaca.hpp */,
-				6DAFC0C11D80A330000FA01D /* connections.hpp */,
-				6DAFC0C21D80A330000FA01D /* server.hpp */,
-				6D4A0DAA1D7E5C8700B35889 /* connections.cpp */,
-				6DAFC0C31D80A374000FA01D /* server.cpp */,
+				6DFACC891D821045001B0B48 /* servers */,
+				6DFACC881D82101C001B0B48 /* src */,
+				6DFACC871D821017001B0B48 /* include */,
 				6D4A0DA21D7E5B1800B35889 /* main.cpp */,
 			);
 			path = AlPACAcpp;
@@ -149,6 +153,36 @@
 				6D4A0DDA1D7E605B00B35889 /* restserver.c */,
 			);
 			name = Examples;
+			sourceTree = "<group>";
+		};
+		6DFACC871D821017001B0B48 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				6D4A0DA91D7E5C7300B35889 /* alpaca.hpp */,
+				6DAFC0C11D80A330000FA01D /* connections.hpp */,
+				6DAFC0C21D80A330000FA01D /* server.hpp */,
+			);
+			name = include;
+			sourceTree = "<group>";
+		};
+		6DFACC881D82101C001B0B48 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				6D4A0DAA1D7E5C8700B35889 /* connections.cpp */,
+				6DAFC0C31D80A374000FA01D /* server.cpp */,
+			);
+			name = src;
+			sourceTree = "<group>";
+		};
+		6DFACC891D821045001B0B48 /* servers */ = {
+			isa = PBXGroup;
+			children = (
+				6DFACC8A1D821053001B0B48 /* emptyserver.cpp */,
+				6DFACC8C1D82105C001B0B48 /* emptyserver.hpp */,
+				6DFACC8F1D8211CF001B0B48 /* basicserver.hpp */,
+				6DFACC8D1D8211C7001B0B48 /* basicserver.cpp */,
+			);
+			name = servers;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -211,8 +245,10 @@
 				6D4A0DA31D7E5B1800B35889 /* main.cpp in Sources */,
 				6D4A0DCD1D7E5E6D00B35889 /* utils.c in Sources */,
 				6D4A0DC71D7E5E6D00B35889 /* connections.c in Sources */,
+				6DFACC8E1D8211C7001B0B48 /* basicserver.cpp in Sources */,
 				6D4A0DCB1D7E5E6D00B35889 /* rest.c in Sources */,
 				6D4A0DAB1D7E5C8700B35889 /* connections.cpp in Sources */,
+				6DFACC8B1D821053001B0B48 /* emptyserver.cpp in Sources */,
 				6D4A0DC81D7E5E6D00B35889 /* modules.c in Sources */,
 				6DAFC0C41D80A374000FA01D /* server.cpp in Sources */,
 				6D4A0DCA1D7E5E6D00B35889 /* read.c in Sources */,

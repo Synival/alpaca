@@ -5,6 +5,7 @@
 
 #include "alpaca/server.hpp"
 #include <iostream>
+#include <stdio.h>
 
 using namespace std;
 
@@ -52,7 +53,7 @@ bool AlpacaServer::isConnected() {
 
 void AlpacaServer::printStatus() {
     if (this->isConnected())
-        cout << "Server is connected.\n";
+        cout << "Server is connected with " << this->numConnections() << " connections.\n";
     else
         cout << "Server is disconnected.\n";
 }
@@ -69,8 +70,52 @@ AlpacaConnection* AlpacaServer::getAlpacaConnection(al_connection_t *connection)
         return find->second;
 }
 
+int AlpacaServer::broadcastGlobalMessage(char *string) {
+//    for (unordered_map<al_connection_t *, AlpacaConnection *>::iterator connection = this->connections.begin();
+//        connection != this->connections.end(); connection++)
+//    {
+//        if (connection->second->flags() & AL_CONNECTION_WROTE) {
+//            connection->second->writeString("\r\n");
+//        }
+//    }
+    cout << "Broadcasting global message:\t" << string << endl;
+    int return_value = al_server_write_string(this->server, string);
+    al_server_write_string(this->server, "\r\n");
+    return return_value;
+}
 
-/* Hooks for various server events.  To be used, these should be overloaded in an inherited class. */
+size_t AlpacaServer::numConnections() {
+    return this->connections.size();
+}
+
+int AlpacaServer::disconnectClient(AlpacaConnection *connection) {
+    // Results in calling _funcServerLeave(), and popConnection()
+    //      Removes entry from this->connections and frees the memory al_connection_t* points to.
+    int return_value = al_connection_free(connection->getPointer());
+    
+    // Delete the AlpacaConnection wrapper class instance.
+    delete connection;
+    
+    return return_value;
+}
+
+int AlpacaServer::popConnection(AlpacaConnection *connection) {
+    unordered_map<al_connection_t *, AlpacaConnection *>::const_iterator find = this->connections.find(connection->getPointer());
+    if (find != this->connections.end())
+        this->connections.erase(find);
+
+    return 0;
+}
+
+int AlpacaServer::popConnection(al_connection_t *connection) {
+    unordered_map<al_connection_t *, AlpacaConnection *>::const_iterator find = this->connections.find(connection);
+    if (find != this->connections.end())
+        this->connections.erase(find);
+    
+    return 0;
+}
+
+/* Hooks for various server events.  In order to be used, these should be overloaded in an inherited class. */
 int AlpacaServer::serverFuncJoin(AlpacaConnection *connection, int func, void *arg) {
     cout << "This is an empty serverFuncJoin(), please write your own!\n";
     return 1;
@@ -99,9 +144,12 @@ int AlpacaServer::serverFuncMax(AlpacaConnection *connection, int func, void *ar
 /* Internal static class member functions which wrap the server hooks that an AlPACA server must implement. */
 int AlpacaServer::_serverFuncJoin(al_server_t *this_server, al_connection_t *connection, int func, void *arg)
 {
-    // Build an AlpacaConnection wrapper object and record the mapping from *connection to it.
     AlpacaServer *this_ptr = reinterpret_cast <AlpacaServer *>(this_server->cpp_wrapper);
+    int start = this_ptr->numConnections();
+    
+    /* Build an AlpacaConnection wrapper object and record the mapping from *connection to it. */
     this_ptr->connections[connection] = new AlpacaConnection(connection);
+    cout << "User joined: \t" << start << "->" << this_ptr->numConnections() << endl;
     
     return this_ptr->serverFuncJoin(this_ptr->connections[connection], func, arg);
 }
@@ -109,15 +157,16 @@ int AlpacaServer::_serverFuncJoin(al_server_t *this_server, al_connection_t *con
 int AlpacaServer::_serverFuncLeave(al_server_t *this_server, al_connection_t *connection, int func, void *arg)
 {
     AlpacaServer *this_ptr = reinterpret_cast <AlpacaServer *>(this_server->cpp_wrapper);
-    int return_code = this_ptr->serverFuncLeave(this_ptr->connections[connection], func, arg);
+    int start = this_ptr->numConnections();
     
-    /* Attempt to remove the connection from this->connections.
-       Delete the AlpacaConnection instance, then remove the container that pointed to it. */
-    unordered_map<al_connection_t *, AlpacaConnection *>::const_iterator find = this_ptr->connections.find(connection);
-    if (find != this_ptr->connections.end()) {
-        delete find->second;
-        this_ptr->connections.erase(find);
-    }
+    /* Remove the connection from the server's list of connections.
+       NOTE: It is assumed that the connection itself is cleaned up elsewhere.  Ideally, that cleanup code will call this
+             member function.  Most likely case: al_connection_free() will have called _serverFuncLeave().
+     */
+    int return_code = this_ptr->serverFuncLeave(this_ptr->connections[connection], func, arg);
+    this_ptr->popConnection(connection);
+    cout << "User left:\t\t" << start << "->" << this_ptr->numConnections() << endl;
+    
     return return_code;
 }
 
@@ -130,7 +179,10 @@ int AlpacaServer::_serverFuncRead(al_server_t *this_server, al_connection_t *con
 int AlpacaServer::_serverFuncPreWrite(al_server_t *this_server, al_connection_t *connection, int func, void *arg)
 {
     AlpacaServer *this_ptr = reinterpret_cast <AlpacaServer *>(this_server->cpp_wrapper);
-    return this_ptr->serverFuncPreWrite(this_ptr->connections[connection], func, arg);
+    if (!al_server_is_quitting(this_ptr->server))
+        return this_ptr->serverFuncPreWrite(this_ptr->connections[connection], func, arg);
+    else
+        return 1;
 }
 
 int AlpacaServer::_serverFuncMax(al_server_t *this_server, al_connection_t *connection, int func, void *arg)
