@@ -44,7 +44,3 @@ al_flags_t AlpacaConnection::flags() {
 int AlpacaConnection::connectionWrote() {
     return al_connection_wrote(this->connection);
 }
-
-al_connection_t * AlpacaConnection::getPointer() {
-    return this->connection;
-}

@@ -13,6 +13,7 @@ class AlpacaConnection {
 //public:
 private:
     al_connection_t *connection;
+    friend class AlpacaServer;      // Gives AlpacaServer access to private members of AlpacaConnection (e.g. the al_connection_t* pointer)
     
 public:
     AlpacaConnection(al_connection_t *connection);
@@ -23,7 +24,6 @@ public:
     int writeString(char *string);
     al_flags_t flags();
     int connectionWrote();
-    al_connection_t * getPointer();
 };
 
 #endif

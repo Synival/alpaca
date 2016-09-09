@@ -42,7 +42,8 @@ int AlpacaServer::close() {
     if (this->server == nullptr)
         return 1;
     
-    al_server_free(this->server);
+//    al_server_free(this->server);
+    al_server_stop(this->server);
     this->server = nullptr;
     return 0;
 }
@@ -91,7 +92,7 @@ size_t AlpacaServer::numConnections() {
 int AlpacaServer::disconnectClient(AlpacaConnection *connection) {
     // Results in calling _funcServerLeave(), and popConnection()
     //      Removes entry from this->connections and frees the memory al_connection_t* points to.
-    int return_value = al_connection_free(connection->getPointer());
+    int return_value = al_connection_free(connection->connection);
     
     // Delete the AlpacaConnection wrapper class instance.
     delete connection;
@@ -100,7 +101,7 @@ int AlpacaServer::disconnectClient(AlpacaConnection *connection) {
 }
 
 int AlpacaServer::popConnection(AlpacaConnection *connection) {
-    unordered_map<al_connection_t *, AlpacaConnection *>::const_iterator find = this->connections.find(connection->getPointer());
+    unordered_map<al_connection_t *, AlpacaConnection *>::const_iterator find = this->connections.find(connection->connection);
     if (find != this->connections.end())
         this->connections.erase(find);
 
