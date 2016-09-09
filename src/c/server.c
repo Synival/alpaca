@@ -14,7 +14,6 @@
 #include "alpaca/connections.h"
 #include "alpaca/modules.h"
 #include "alpaca/mutex.h"
-#include "alpaca/rest.h"
 
 #include "alpaca/server.h"
 
@@ -724,3 +723,21 @@ al_module_t *al_server_module_new (al_server_t *server, char *name, void *data,
  */
 al_module_t *al_server_module_get (al_server_t *server, char *name)
    { return al_module_get (&(server->module_list), name); }
+
+/* al_server_in_thread():
+ * ----------------------
+ * Check if pthread_self() matches the server thread.
+ *
+ * server: The server whose thread we're checking.
+ *
+ * Returns: 0 if the server is not running or pthread_self() doesn't match.
+ *          1 if the server is running and pthread_self() matches.
+ */
+int al_server_in_thread (al_server_t *server)
+{
+   if (!al_server_is_running (server))
+      return 0;
+   if (pthread_equal (pthread_self(), server->pthread))
+      return 1;
+   return 0;
+}
