@@ -10,7 +10,8 @@
 using namespace std;
 
 AlpacaServer::AlpacaServer() {
-    this->server = nullptr;
+//    this->server = nullptr;
+    
 }
 
 AlpacaServer::~AlpacaServer() {
