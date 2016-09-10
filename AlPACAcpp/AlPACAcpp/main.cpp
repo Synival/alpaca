@@ -34,7 +34,7 @@ public:
              5. Otherwise, echo the input back to the user that typed it.
              */
             if (buf[0] == '\0')                                             connection->connectionWrote();
-            else if (strcmp(buf, "shutdown") == 0)                          return this->close();
+            else if (strcmp(buf, "shutdown") == 0)                          return this->stop();
             else if (strcmp(buf, "disconnect") == 0)                        return this->disconnectClient(connection);
             else if (strlen(buf) > 6 && strncmp("shout ", buf, 6) == 0)     this->broadcastGlobalMessage(buf + 6);
             else {
@@ -49,13 +49,13 @@ public:
 int main(int argc, const char * argv[])
 {
     EchoServer *server = new EchoServer();
-    if (server->open(4096) == 2)
+    if (server->start(4096) == 2)
         return 2;
     
     cout << "Server is live.\n";
     server->wait();
     
-    server->close();
+    delete server;
     cout << "Server has shut down.\n";
     
     return 0;

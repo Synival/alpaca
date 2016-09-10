@@ -21,9 +21,9 @@ private:
 public:
     AlpacaServer();
     ~AlpacaServer();
-    int open(int port, unsigned long int flags = 0);
-    int close();
-    bool isConnected();
+    int start(int port, al_flags_t flags = 0);
+    int stop();
+    bool isRunning();
     void printStatus();
     int wait();
     AlpacaConnection* getAlpacaConnection(al_connection_t *connection);

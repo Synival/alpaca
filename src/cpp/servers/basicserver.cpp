@@ -16,7 +16,7 @@ int BasicServer::serverFuncRead(AlpacaConnection *connection, int func, void *ar
             3. If we get "disconnect", close only this client's connection to the server.
          */
         if (buf[0] == '\0')                        connection->connectionWrote();
-        else if (strcmp(buf, "shutdown") == 0)     return this->close();
+        else if (strcmp(buf, "shutdown") == 0)     return this->stop();
         else if (strcmp(buf, "disconnect") == 0)   return this->disconnectClient(connection);
     }
     return 0;

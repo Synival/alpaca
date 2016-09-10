@@ -10,54 +10,49 @@
 using namespace std;
 
 AlpacaServer::AlpacaServer() {
-//    this->server = nullptr;
-    
-}
-
-AlpacaServer::~AlpacaServer() {
-    this->close();
-}
-
-int AlpacaServer::open(int port, unsigned long int flags) {
-    if (this->server != nullptr)
-        return 1;
-    
-    this->server = al_server_new(port, flags);
+    this->server = al_server_new(-1, 0);
     this->server->cpp_wrapper = this;
-    if (!al_server_start(this->server)) {
-        fprintf (stderr, "Server failed to start.\n");
-        this->close();
-        return 2;
-    }
-
+    
     al_server_func_set(this->server, AL_SERVER_FUNC_JOIN,       this->_serverFuncJoin);
     al_server_func_set(this->server, AL_SERVER_FUNC_LEAVE,      this->_serverFuncLeave);
     al_server_func_set(this->server, AL_SERVER_FUNC_READ,       this->_serverFuncRead);
     al_server_func_set(this->server, AL_SERVER_FUNC_PRE_WRITE,  this->_serverFuncPreWrite);
     al_server_func_set(this->server, AL_SERVER_FUNC_MAX,        this->_serverFuncMax);
-    
-    return 0;
 }
 
-int AlpacaServer::close() {
-    if (this->server == nullptr)
+AlpacaServer::~AlpacaServer() {
+    this->stop();
+}
+
+int AlpacaServer::start(int port, al_flags_t flags) {
+    if (this->isRunning()) {
+        fprintf(stderr, "Server is live.  Close() it first before calling open().\n");
         return 1;
+    }
     
-//    al_server_free(this->server);
-    al_server_stop(this->server);
-    this->server = nullptr;
+    al_server_set_flags(this->server, port, flags);
+    if (!al_server_start(this->server)) {
+        fprintf (stderr, "Server failed to start.\n");
+        this->stop();
+        return 2;
+    }
+    
     return 0;
 }
 
-bool AlpacaServer::isConnected() {
-    return this->server != nullptr;
+int AlpacaServer::stop() {
+    return al_server_stop(this->server);
+}
+
+bool AlpacaServer::isRunning() {
+    return al_server_is_running(this->server);
 }
 
 void AlpacaServer::printStatus() {
-    if (this->isConnected())
+    if (this->isRunning())
         cout << "Server is connected with " << this->numConnections() << " connections.\n";
     else
-        cout << "Server is disconnected.\n";
+        cout << "Server is disRunning.\n";
 }
 
 int AlpacaServer::wait() {
