@@ -7,7 +7,15 @@
 
 #ifdef HAVE_CONFIG_H
    #include "config.h"
-#elif defined __APPLE__
+#endif
+
+#if defined __APPLE__
+   #define HAVE_STRDUP
+#endif
+
+#if (defined _SVID_SOURCE) || (defined _BSD_SOURCE) || (_XOPEN_SOURCE >= 500) \
+       || ((defined _XOPEN_SOURCE) && \
+       (defined _XOPEN_SOURCE_EXTENDED)) || _POSIX_C_SOURCE >= 200809L
    #define HAVE_STRDUP
 #endif
 

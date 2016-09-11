@@ -43,7 +43,9 @@ al_module_t *al_module_new (void *owner, al_module_t **list, const char *name,
 
 int al_module_free (al_module_t *m)
 {
-   /* TODO: run custom free func. */
+   /* run custom free func. */
+   if (m->func_free)
+      m->func_free (m, m->data);
 
    /* unlink from whatever list we're using. */
    if (m->prev) m->prev->next = m->next;

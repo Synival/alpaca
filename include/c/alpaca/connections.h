@@ -37,13 +37,6 @@ struct _al_connection_t {
    char *ip_address;
 };
 
-/* data sent via AL_SERVER_READ_FUNC. */
-struct _al_func_read_t {
-   al_connection_t *connection;
-   unsigned char *data, *new_data;
-   size_t data_len, new_data_len, bytes_used;
-};
-
 /* data sent via AL_SERVER_PRE_WRITE_FUNC. */
 struct _al_func_pre_write_t {
    unsigned char *data;

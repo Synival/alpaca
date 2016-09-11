@@ -44,7 +44,8 @@ otherinclude_HEADERS = \
    include/c/alpaca/mutex.h \
    include/c/alpaca/read.h \
    include/c/alpaca/http.h \
-   include/c/alpaca/server.h
+   include/c/alpaca/server.h \
+   include/c/alpaca/utils.h
 
 noinst_PROGRAMS = echoserver httpserver cpptest
 echoserver_SOURCES = src/examples-c/echoserver.c

@@ -465,7 +465,8 @@ otherinclude_HEADERS = \
    include/c/alpaca/mutex.h \
    include/c/alpaca/read.h \
    include/c/alpaca/http.h \
-   include/c/alpaca/server.h
+   include/c/alpaca/server.h \
+   include/c/alpaca/utils.h
 
 echoserver_SOURCES = src/examples-c/echoserver.c
 echoserver_CFLAGS = -I$(top_srcdir)/include/c -Wall -std=c99
