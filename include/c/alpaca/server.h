@@ -51,29 +51,29 @@ struct _al_server_t {
 /* functions for server management. */
 al_server_t *al_server_new (int port, al_flags_t flags);
 int al_server_set_flags (al_server_t *server, int port, al_flags_t flags);
-int al_server_is_open (al_server_t *server);
-int al_server_is_running (al_server_t *server);
-int al_server_is_quitting (al_server_t *server);
-int al_server_is_in_loop (al_server_t *server);
+int al_server_is_open (const al_server_t *server);
+int al_server_is_running (const al_server_t *server);
+int al_server_is_quitting (const al_server_t *server);
+int al_server_is_in_loop (const al_server_t *server);
 int al_server_close (al_server_t *server);
 int al_server_open (al_server_t *server);
 void *al_server_pthread_func (void *arg);
 int al_server_start (al_server_t *server);
 int al_server_wait (al_server_t *server);
 int al_server_run_func (al_server_t *server);
-int al_server_new_connection (al_server_t *server, int fd,
-   struct sockaddr_in *addr, socklen_t addr_size);
 int al_server_stop (al_server_t *server);
 int al_server_interrupt (al_server_t *server);
 int al_server_free (al_server_t *server);
 int al_server_lock (al_server_t *server);
 int al_server_unlock (al_server_t *server);
 int al_server_func_set (al_server_t *server, int task, al_server_func *func);
-int al_server_write_all (al_server_t *server, unsigned char *buf, size_t size);
-int al_server_write_string (al_server_t *server, char *string);
-al_module_t *al_server_module_new (al_server_t *server, char *name, void *data,
-   size_t data_size, al_module_func *free_func);
-al_module_t *al_server_module_get (al_server_t *server, char *name);
-int al_server_in_thread (al_server_t *server);
+int al_server_write (al_server_t *server, const unsigned char *buf,
+   size_t size);
+int al_server_write_string (al_server_t *server, const char *string);
+al_module_t *al_server_module_new (al_server_t *server, const char *name,
+   void *data, size_t data_size, al_module_func *free_func);
+al_module_t *al_server_module_get (const al_server_t *server,
+   const char *name);
+int al_server_in_thread (const al_server_t *server);
 
 #endif

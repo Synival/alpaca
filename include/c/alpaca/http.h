@@ -40,30 +40,31 @@ struct _al_http_header_t {
 
 /* top-level http mangement functions. */
 al_http_t *al_http_init (al_server_t *server);
-al_http_t *al_http_get (al_server_t *server);
-al_http_state_t *al_http_get_state (al_connection_t *connection);
-al_http_func_def_t *al_http_set_func (al_http_t *http, char *verb,
+al_http_t *al_http_get (const al_server_t *server);
+al_http_state_t *al_http_get_state (const al_connection_t *connection);
+al_http_func_def_t *al_http_set_func (al_http_t *http, const char *verb,
    al_http_func *func);
-al_http_func_def_t *al_http_get_func (al_http_t *http, char *verb);
+al_http_func_def_t *al_http_get_func (const al_http_t *http, const char *verb);
 int al_http_free_func (al_http_func_def_t *rf);
 
 /* state management. */
 int al_http_state_method (al_connection_t *connection, al_http_t *http,
-   al_http_state_t *state, char *line);
+   al_http_state_t *state, const char *line);
 int al_http_state_header (al_connection_t *connection, al_http_t *http,
-   al_http_state_t *state, char *line);
+   al_http_state_t *state, const char *line);
 int al_http_state_finish (al_connection_t *connection, al_http_t *http,
    al_http_state_t *state);
 int al_http_write_string (al_connection_t *connection, al_http_t *http,
-   al_http_state_t *state, char *string);
+   al_http_state_t *state, const char *string);
 int al_http_state_reset (al_connection_t *connection, al_http_t *http,
    al_http_state_t *state);
 int al_http_state_cleanup (al_http_state_t *state);
 
 /* state header management. */
-al_http_header_t *al_http_header_set (al_http_state_t *state, char *name,
-   char *value);
-al_http_header_t *al_http_header_get (al_http_state_t *state, char *name);
+al_http_header_t *al_http_header_set (al_http_state_t *state,
+   const char *name, const char *value);
+al_http_header_t *al_http_header_get (const al_http_state_t *state,
+   const char *name);
 int al_http_header_free (al_http_header_t *h);
 int al_http_header_clear (al_http_state_t *state);
 

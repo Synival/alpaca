@@ -40,8 +40,8 @@ AL_HTTP_FUNC (example_http_get)
       "HTTP/1.1 200 OK\r\n"
       "Cache-Control: no-cache\r\n"
       "Connection: close\r\n"
-      "Content-Length: %d\r\n"
-      "\r\n", strlen (html));
+      "Content-Length: %ld\r\n"
+      "\r\n", (long int) strlen (html));
 
    /* send out our header and web content. */
    al_connection_write_string (connection, header);

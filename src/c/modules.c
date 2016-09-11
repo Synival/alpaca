@@ -7,7 +7,7 @@
 
 #include "alpaca/modules.h"
 
-al_module_t *al_module_get (al_module_t **list, char *name)
+al_module_t *al_module_get (al_module_t *const *list, const char *name)
 {
    /* search for a module in 'list' with a matching name. */
    if (list == NULL)
@@ -19,7 +19,7 @@ al_module_t *al_module_get (al_module_t **list, char *name)
    return NULL;
 }
 
-al_module_t *al_module_new (void *owner, al_module_t **list, char *name,
+al_module_t *al_module_new (void *owner, al_module_t **list, const char *name,
    void *data, size_t data_size, al_module_func *func_free)
 {
    /* allocate our new module with basic settings. */

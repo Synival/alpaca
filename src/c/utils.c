@@ -23,7 +23,7 @@ char *strdup (const char *str)
 }
 #endif
 
-int al_util_replace_string (char **dst, char *src)
+int al_util_replace_string (char **dst, const char *src)
 {
    if (*dst == src)
       return 0;

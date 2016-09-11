@@ -14,7 +14,7 @@
 #include "alpaca/connections.h"
 
 al_connection_t *al_connection_new (al_server_t *server, int fd,
-   struct sockaddr_in *addr, socklen_t addr_size)
+   const struct sockaddr_in *addr, socklen_t addr_size)
 {
    al_connection_t *new;
 
@@ -96,7 +96,8 @@ int al_connection_close (al_connection_t *c)
 }
 
 int al_connection_append_buffer (al_connection_t *c, unsigned char **buf,
-   size_t *size, size_t *len, size_t *pos, unsigned char *input, size_t isize)
+   size_t *size, size_t *len, size_t *pos, const unsigned char *input,
+   size_t isize)
 {
    size_t new_size;
 
@@ -135,8 +136,9 @@ int al_connection_append_buffer (al_connection_t *c, unsigned char **buf,
    return 1;
 }
 
-int al_connection_fetch_buffer (al_connection_t *c, unsigned char **buf,
-   size_t *size, size_t *len, size_t *pos, unsigned char *output, size_t osize)
+int al_connection_fetch_buffer (al_connection_t *c, const unsigned char **buf,
+   size_t *size, size_t *len, size_t *pos, unsigned char *output,
+   size_t osize)
 {
    size_t input_len;
 
@@ -175,8 +177,8 @@ int al_connection_fetch_buffer (al_connection_t *c, unsigned char **buf,
 int al_connection_read (al_connection_t *c, unsigned char *buf, size_t size)
 {
    /* read from our auto-sizing input buffer. */
-   return al_connection_fetch_buffer (c, &(c->input), &(c->input_size),
-      &(c->input_len), &(c->input_pos), buf, size);
+   return al_connection_fetch_buffer (c, (const unsigned char **) &(c->input),
+      &(c->input_size), &(c->input_len), &(c->input_pos), buf, size);
 }
 
 int al_connection_fd_read (al_connection_t *c)
@@ -240,7 +242,7 @@ int al_connection_fd_write (al_connection_t *c)
    return bytes;
 }
 
-int al_connection_write (al_connection_t *c, unsigned char *buf,
+int al_connection_write (al_connection_t *c, const unsigned char *buf,
    size_t size)
 {
    /* don't write blank data or to connections being closed. */
@@ -252,7 +254,7 @@ int al_connection_write (al_connection_t *c, unsigned char *buf,
    return res;
 }
 
-int al_connection_write_string (al_connection_t *c, char *string)
+int al_connection_write_string (al_connection_t *c, const char *string)
 {
    /* send a string as unsigned bytes. */
    return al_connection_write (c, (unsigned char *) string,
@@ -293,11 +295,12 @@ int al_connection_stage_output (al_connection_t *c)
    return c->output_max;
 }
 
-al_module_t *al_connection_module_new (al_connection_t *connection, char *name,
-   void *data, size_t data_size, al_module_func *free_func)
+al_module_t *al_connection_module_new (al_connection_t *connection,
+   const char *name, void *data, size_t data_size, al_module_func *free_func)
 {
    return al_module_new (connection, &(connection->module_list), name, data,
       data_size, free_func);
 }
-al_module_t *al_connection_module_get (al_connection_t *connection, char *name)
+al_module_t *al_connection_module_get (const al_connection_t *connection,
+   const char *name)
    { return al_module_get (&(connection->module_list), name); }

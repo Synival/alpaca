@@ -98,12 +98,18 @@ AL_SERVER_FUNC (al_http_func_read)
 }
 
 int al_http_state_method (al_connection_t *connection, al_http_t *http,
-   al_http_state_t *state, char *line)
+   al_http_state_t *state, const char *line)
 {
+   /* allocate a mutable version. */
+   size_t len = strlen (line);
+   char mline[len + 1];
+   memcpy (mline, line, len + 1);
+
    /* make sure there's at least a verb and a URI. */
-   char *verb = line, *uri;
-   if ((uri = strchr (line, ' ')) == NULL)
+   char *verb = mline, *uri;
+   if ((uri = strchr (mline, ' ')) == NULL) {
       return 0;
+   }
    while (*uri == ' ') {
       *uri = '\0';
       uri++;
@@ -169,7 +175,7 @@ int al_http_state_method (al_connection_t *connection, al_http_t *http,
 }
 
 int al_http_state_header (al_connection_t *connection, al_http_t *http,
-   al_http_state_t *state, char *line)
+   al_http_state_t *state, const char *line)
 {
    /* if this is the last line, finish our request. */
    if (*line == '\0')
@@ -186,9 +192,9 @@ int al_http_state_header (al_connection_t *connection, al_http_t *http,
     * into a name/value pair. */
    size_t len       = strlen (line),
           name_len  = colon - line;
-   char buf[len + 1];
-   snprintf (buf, len + 1, "%s", line);
-   char *name = buf, *value = buf + name_len + 1;
+   char mline[len + 1];
+   memcpy (mline, line, len + 1);
+   char *name = mline, *value = mline + name_len + 1;
 
    /* replace the colon with '\0' so 'name' is terminated. */
    name[name_len] = '\0';
@@ -238,12 +244,12 @@ AL_SERVER_FUNC (al_http_func_leave)
    return 0;
 }
 
-al_http_t *al_http_get (al_server_t *server)
+al_http_t *al_http_get (const al_server_t *server)
    { return al_server_module_get (server, "http")->data; }
-al_http_state_t *al_http_get_state (al_connection_t *connection)
+al_http_state_t *al_http_get_state (const al_connection_t *connection)
    { return al_connection_module_get (connection, "http")->data; }
 
-al_http_func_def_t *al_http_set_func (al_http_t *http, char *verb,
+al_http_func_def_t *al_http_set_func (al_http_t *http, const char *verb,
    al_http_func *func)
 {
    /* make sure this function doesn't already exist. */
@@ -264,7 +270,7 @@ al_http_func_def_t *al_http_set_func (al_http_t *http, char *verb,
    return new;
 }
 
-al_http_func_def_t *al_http_get_func (al_http_t *http, char *verb)
+al_http_func_def_t *al_http_get_func (const al_http_t *http, const char *verb)
 {
    al_http_func_def_t *fd;
    if (http == NULL || verb == NULL)
@@ -326,7 +332,7 @@ int al_http_state_finish (al_connection_t *connection, al_http_t *http,
 }
 
 int al_http_write_string (al_connection_t *connection, al_http_t *http,
-   al_http_state_t *state, char *string)
+   al_http_state_t *state, const char *string)
 {
    /* TODO: eventually, there might be gzip compression or other
     * considerations.  this function exists to make sure that can happen
@@ -334,8 +340,8 @@ int al_http_write_string (al_connection_t *connection, al_http_t *http,
    return al_connection_write_string (connection, string);
 }
 
-al_http_header_t *al_http_header_set (al_http_state_t *state, char *name,
-   char *value)
+al_http_header_t *al_http_header_set (al_http_state_t *state,
+   const char *name, const char *value)
 {
    /* if there's already a field with this name, change the value. */
    al_http_header_t *h;
@@ -354,7 +360,8 @@ al_http_header_t *al_http_header_set (al_http_state_t *state, char *name,
    return h;
 }
 
-al_http_header_t *al_http_header_get (al_http_state_t *state, char *name)
+al_http_header_t *al_http_header_get (const al_http_state_t *state,
+   const char *name)
 {
    if (state == NULL || name == NULL)
       return NULL;

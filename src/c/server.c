@@ -80,13 +80,13 @@ int al_server_set_flags (al_server_t *server, int port, al_flags_t flags)
  * -------------------------------------------------------------
  * Return value: 1 if the flag checked is on, otherwise 0.
  */
-int al_server_is_open (al_server_t *server)
+int al_server_is_open (const al_server_t *server)
    { return (server->state & AL_SERVER_STATE_OPEN) ? 1 : 0; }
-int al_server_is_running (al_server_t *server)
+int al_server_is_running (const al_server_t *server)
    { return (server->state & AL_SERVER_STATE_RUNNING) ? 1 : 0; }
-int al_server_is_quitting (al_server_t *server)
+int al_server_is_quitting (const al_server_t *server)
    { return (server->state & AL_SERVER_STATE_QUIT) ? 1 : 0; }
-int al_server_is_in_loop (al_server_t *server)
+int al_server_is_in_loop (const al_server_t *server)
    { return (server->state & AL_SERVER_STATE_IN_LOOP) ? 1 : 0; }
 
 /* al_server_lock():
@@ -665,7 +665,8 @@ int al_server_func_set (al_server_t *server, int task, al_server_func *func)
  *
  * Return value: The number of connections written to.
  */
-int al_server_write (al_server_t *server, unsigned char *buf, size_t size)
+int al_server_write (al_server_t *server, const unsigned char *buf,
+   size_t size)
 {
    al_connection_t *c;
    int count;
@@ -691,7 +692,7 @@ int al_server_write (al_server_t *server, unsigned char *buf, size_t size)
  *
  * Return value: The number of connections written to.
  */
-int al_server_write_string (al_server_t *server, char *string)
+int al_server_write_string (al_server_t *server, const char *string)
 {
    return al_server_write (server, (unsigned char *) string, strlen (string));
 }
@@ -710,8 +711,8 @@ int al_server_write_string (al_server_t *server, char *string)
  *
  * Returns: Pointer to new instance of 'al_module_t' or NULL on error.
  */
-al_module_t *al_server_module_new (al_server_t *server, char *name, void *data,
-   size_t data_size, al_module_func *free_func)
+al_module_t *al_server_module_new (al_server_t *server, const char *name,
+   void *data, size_t data_size, al_module_func *free_func)
 {
    return al_module_new (server, &(server->module_list), name, data, data_size,
                          free_func);
@@ -722,7 +723,8 @@ al_module_t *al_server_module_new (al_server_t *server, char *name, void *data,
  * Simple server wrapper for al_module_get().  Looks up a module by name and
  * returns it if available.  Returns NULL if the module cannot be found.
  */
-al_module_t *al_server_module_get (al_server_t *server, char *name)
+al_module_t *al_server_module_get (const al_server_t *server,
+   const char *name)
    { return al_module_get (&(server->module_list), name); }
 
 /* al_server_in_thread():
@@ -734,7 +736,7 @@ al_module_t *al_server_module_get (al_server_t *server, char *name)
  * Returns: 0 if the server is not running or pthread_self() doesn't match.
  *          1 if the server is running and pthread_self() matches.
  */
-int al_server_in_thread (al_server_t *server)
+int al_server_in_thread (const al_server_t *server)
 {
    if (!al_server_is_running (server))
       return 0;

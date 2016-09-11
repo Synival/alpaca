@@ -52,25 +52,26 @@ struct _al_func_pre_write_t {
 
 /* functions for connection management. */
 al_connection_t *al_connection_new (al_server_t *server, int fd,
-   struct sockaddr_in *addr, socklen_t addr_size);
+   const struct sockaddr_in *addr, socklen_t addr_size);
 int al_connection_free (al_connection_t *c);
 int al_connection_close (al_connection_t *c);
 int al_connection_append_buffer (al_connection_t *c, unsigned char **buf,
-   size_t *size, size_t *len, size_t *pos, unsigned char *input, size_t isize);
-int al_connection_fetch_buffer (al_connection_t *c, unsigned char **buf,
-   size_t *size, size_t *len, size_t *pos, unsigned char *output, size_t osize);
+   size_t *size, size_t *len, size_t *pos, const unsigned char *input,
+   size_t isize);
+int al_connection_fetch_buffer (al_connection_t *c, const unsigned char **buf,
+   size_t *size, size_t *len, size_t *pos, unsigned char *output,
+   size_t osize);
 int al_connection_read (al_connection_t *c, unsigned char *buf, size_t size);
 int al_connection_fd_read (al_connection_t *c);
 int al_connection_fd_write (al_connection_t *c);
-int al_connection_write (al_connection_t *c, unsigned char *buf,
+int al_connection_write (al_connection_t *c, const unsigned char *buf,
    size_t size);
-int al_connection_write_string (al_connection_t *c, char *string);
-int al_connection_write_all_string (al_server_t *server, char *string);
+int al_connection_write_string (al_connection_t *c, const char *string);
 int al_connection_wrote (al_connection_t *c);
 int al_connection_stage_output (al_connection_t *c);
-al_module_t *al_connection_module_new (al_connection_t *connection, char *name,
-   void *data, size_t data_size, al_module_func *free_func);
-al_module_t *al_connection_module_get (al_connection_t *connection,
-   char *name);
+al_module_t *al_connection_module_new (al_connection_t *connection,
+   const char *name, void *data, size_t data_size, al_module_func *free_func);
+al_module_t *al_connection_module_get (const al_connection_t *connection,
+   const char *name);
 
 #endif
