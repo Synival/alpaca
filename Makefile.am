@@ -18,7 +18,7 @@ libalpaca_cpp_la_LDFLAGS = \
    -release 0.0.1
 libalpaca_cpp_la_CFLAGS = \
    -I$(top_srcdir)/include/c -Wall -std=c99
-libalpaca_cpp_la_CPPFLAGS = \
+libalpaca_cpp_la_CXXFLAGS = \
    -I$(top_srcdir)/include/c -I$(top_srcdir)/include/cpp -std=c++11
 libalpaca_cpp_la_SOURCES = \
    src/c/connections.c \
@@ -57,5 +57,5 @@ httpserver_CFLAGS  = -I$(top_srcdir)/include/c -Wall -std=c99
 httpserver_LDFLAGS = -L../lib -lalpaca -lpthread
 
 cpptest_SOURCES = AlPACAcpp/AlPACAcpp/main.cpp
-cpptest_CPPFLAGS  = -I$(top_srcdir)/include/c -I$(top_srcdir)/include/cpp -Wall -std=c++11
+cpptest_CXXFLAGS  = -I$(top_srcdir)/include/c -I$(top_srcdir)/include/cpp -Wall -std=c++11
 cpptest_LDFLAGS = -L../lib -lalpaca_cpp -lpthread
