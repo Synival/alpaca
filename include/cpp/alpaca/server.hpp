@@ -20,7 +20,7 @@ private:
 
 public:
     AlpacaServer();
-    ~AlpacaServer();
+    virtual ~AlpacaServer();
     int start(int port, al_flags_t flags = 0);
     int stop();
     bool isRunning();
