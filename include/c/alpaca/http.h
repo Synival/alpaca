@@ -28,7 +28,12 @@ struct _al_http_state_t {
    al_flags_t flags;
    char *verb, *uri, *version_str;
    al_connection_t *connection;
+   al_http_t *http;
    al_http_header_t *header_list;
+
+   /* output buffer. */
+   unsigned char *output;
+   size_t output_size, output_len, output_pos;
 };
 
 /* header information. */
@@ -48,16 +53,10 @@ al_http_func_def_t *al_http_get_func (const al_http_t *http, const char *verb);
 int al_http_free_func (al_http_func_def_t *rf);
 
 /* state management. */
-int al_http_state_method (al_connection_t *connection, al_http_t *http,
-   al_http_state_t *state, const char *line);
-int al_http_state_header (al_connection_t *connection, al_http_t *http,
-   al_http_state_t *state, const char *line);
-int al_http_state_finish (al_connection_t *connection, al_http_t *http,
-   al_http_state_t *state);
-int al_http_write_string (al_connection_t *connection, al_http_t *http,
-   al_http_state_t *state, const char *string);
-int al_http_state_reset (al_connection_t *connection, al_http_t *http,
-   al_http_state_t *state);
+int al_http_state_method  (al_http_state_t *state, const char *line);
+int al_http_state_header  (al_http_state_t *state, const char *line);
+int al_http_state_finish  (al_http_state_t *state);
+int al_http_state_reset   (al_http_state_t *state);
 int al_http_state_cleanup (al_http_state_t *state);
 
 /* state header management. */
@@ -67,6 +66,12 @@ al_http_header_t *al_http_header_get (const al_http_state_t *state,
    const char *name);
 int al_http_header_free (al_http_header_t *h);
 int al_http_header_clear (al_http_state_t *state);
+
+/* writing to clients. */
+int al_http_write (al_http_state_t *state, const unsigned char *buf,
+   size_t size);
+int al_http_write_string (al_http_state_t *state, const char *string);
+int al_http_write_finish (al_http_state_t *state);
 
 /* hooks and default functions. */
 AL_MODULE_FUNC (al_http_data_free);

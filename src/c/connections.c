@@ -118,11 +118,13 @@ int al_connection_append_buffer (al_connection_t *c, unsigned char **buf,
 
    /* make sure our buffer is the proper size. */
    if (*buf == NULL) {
-      *buf = malloc (sizeof (unsigned char) * new_size);
+      *buf  = malloc (sizeof (unsigned char) * new_size);
       *size = new_size;
+      *len  = 0;
+      *pos  = 0;
    }
    else if (new_size != *size) {
-      *buf = realloc (*buf, new_size);
+      *buf  = realloc (*buf, new_size);
       *size = new_size;
    }
 

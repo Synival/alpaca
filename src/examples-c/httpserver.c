@@ -7,10 +7,9 @@
 AL_HTTP_FUNC (example_http_get)
 {
    char html[8192];
-   size_t len;
 
    /* build a simple HTML page. */
-   len = snprintf (html, sizeof (html),
+   snprintf (html, sizeof (html),
       "<!doctype html>\r\n"
       "<html>\r\n"
       "<body>\r\n"
@@ -20,32 +19,23 @@ AL_HTTP_FUNC (example_http_get)
       "  <tr><td><b>Version</b>:</td><td>%s</td></tr>\r\n"
       "</table>\r\n"
       "<h1>Header:</h1>\r\n"
-      "<table>\r\n", state->verb, state->uri, state->version_str);
+      "<table>\r\n", request->verb, request->uri, request->version_str);
+   al_http_write_string (request, html);
 
    /* barf all the header info back to the client. */
    al_http_header_t *h;
-   for (h = state->header_list; h != NULL; h = h->next)
-      len += snprintf (html+ len, sizeof (html) - len,
+   for (h = request->header_list; h != NULL; h = h->next) {
+      snprintf (html, sizeof (html),
          "  <tr><td><b>%s</b>:</td><td>%s</td></tr>\r\n", h->name, h->value);
+      al_http_write_string (request, html);
+   }
 
    /* end our HTML. */
-   snprintf (html + len, sizeof (html) - len,
+   snprintf (html, sizeof (html),
       "</table>\r\n"
       "</body>\r\n"
       "</html>\r\n");
-
-   /* build our header AFTER the file so we have 'Content-Length'. */
-   char header[8192];
-   snprintf (header, sizeof (header),
-      "HTTP/1.1 200 OK\r\n"
-      "Cache-Control: no-cache\r\n"
-      "Connection: close\r\n"
-      "Content-Length: %ld\r\n"
-      "\r\n", (long int) strlen (html));
-
-   /* send out our header and web content. */
-   al_connection_write_string (connection, header);
-   al_connection_write_string (connection, html);
+   al_http_write_string (request, html);
 
    /* return success. */
    return 1;
