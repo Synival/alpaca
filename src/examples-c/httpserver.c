@@ -4,8 +4,27 @@
 
 #include <alpaca/alpaca.h>
 
+AL_HTTP_FUNC (example_http_error)
+{
+   al_http_write_string (request,
+      "<!doctype html>\r\n"
+      "<html>\r\n"
+      "<body>\r\n"
+      "<h1>This request doesn't work!</h1>\r\n"
+      "<p>Whatever you did, you did it wrong!\r\n"
+      "</body>\r\n"
+      "</html>\r\n");
+   return 0;
+}
+
 AL_HTTP_FUNC (example_http_get)
 {
+   /* simulate an error if our URI is 'error'. */
+   if (strcmp (request->uri, "/error") == 0) {
+      al_http_set_status_code (request, 200);
+      return example_http_error (request, func, data);
+   }
+
    char html[8192];
 
    /* build a simple HTML page. */
@@ -38,7 +57,7 @@ AL_HTTP_FUNC (example_http_get)
    al_http_write_string (request, html);
 
    /* return success. */
-   return 1;
+   return 0;
 }
 
 int main (int argc, char **argv)
@@ -58,7 +77,8 @@ int main (int argc, char **argv)
 
    /* use an HTTP module and assign some basic functions to it. */
    al_http_t *http = al_http_init (server);
-   al_http_set_func (http, "GET", example_http_get);
+   al_http_set_func (http, "GET",   example_http_get);
+   al_http_set_func (http, "ERROR", example_http_error);
 
    /* start our server. */
    if (!al_server_start (server)) {

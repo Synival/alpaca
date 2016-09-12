@@ -24,7 +24,7 @@ struct _al_http_t {
 
 /* state information for each connection. */
 struct _al_http_state_t {
-   int state, version;
+   int state, version, status_code;
    al_flags_t flags;
    char *verb, *uri, *version_str;
    al_connection_t *connection;
@@ -58,6 +58,7 @@ int al_http_state_header  (al_http_state_t *state, const char *line);
 int al_http_state_finish  (al_http_state_t *state);
 int al_http_state_reset   (al_http_state_t *state);
 int al_http_state_cleanup (al_http_state_t *state);
+int al_http_state_cleanup_output (al_http_state_t *state);
 
 /* state header management. */
 al_http_header_t *al_http_header_set (al_http_state_t *state,
@@ -66,6 +67,8 @@ al_http_header_t *al_http_header_get (const al_http_state_t *state,
    const char *name);
 int al_http_header_free (al_http_header_t *h);
 int al_http_header_clear (al_http_state_t *state);
+const char *al_http_status_code_string (int status_code);
+int al_http_set_status_code (al_http_state_t *state, int status_code);
 
 /* writing to clients. */
 int al_http_write (al_http_state_t *state, const unsigned char *buf,

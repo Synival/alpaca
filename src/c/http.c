@@ -52,7 +52,7 @@ int al_http_state_cleanup (al_http_state_t *state)
    if (state->verb)        {free (state->verb);       state->verb       =NULL;}
    if (state->uri)         {free (state->uri);        state->uri        =NULL;}
    if (state->version_str) {free (state->version_str);state->version_str=NULL;}
-   if (state->output)      {free (state->output);     state->output     =NULL;}
+   al_http_state_cleanup_output (state);
    al_http_header_clear (state);
    return 1;
 }
@@ -172,11 +172,12 @@ int al_http_state_header (al_http_state_t *state, const char *line)
    if (*line == '\0')
       return al_http_state_finish (state);
 
-   /* make sure this is a proper header field. */
+   /* make sure this is a proper header field.  if not, mark as a bad
+    * request. */
    char *colon;
    if ((colon = strchr (line, ':')) == NULL) {
-      /* TODO: error code. */
-      return 0;
+      al_http_set_status_code (state, 200);
+      return 1;
    }
 
    /* it's valid! build our own modifiable string we can use to split
@@ -221,9 +222,10 @@ AL_SERVER_FUNC (al_http_func_join)
 int al_http_state_reset (al_http_state_t *state)
 {
    al_http_state_cleanup (state);
-   state->state   = AL_STATE_METHOD;
-   state->version = AL_HTTP_INVALID;
-   state->flags   = 0;
+   state->state       = AL_STATE_METHOD;
+   state->version     = AL_HTTP_INVALID;
+   state->flags       = 0;
+   state->status_code = 200;
    return 1;
 }
 
@@ -288,24 +290,31 @@ int al_http_free_func (al_http_func_def_t *fd)
 
 int al_http_state_finish (al_http_state_t *state)
 {
-   /* HTTP/1.1 requires a Host, for example. */
-   if (state->version == AL_HTTP_1_1) {
-      /* TODO: do we need to /do/ anything with the host...? */
+   /* HTTP/1.1 requires a 'Host' field.  if it's not there, 
+    * set the status code to 'bad request'. */
+   if (state->status_code == 200 && state->version == AL_HTTP_1_1) {
+      /* TODO: do we need to DO anything with the host...? */
       if (!al_http_header_get (state, "Host"))
-         /* TODO: error. */
-         return 0;
+         al_http_set_status_code (state, 400);
    }
 
-   /* is there a valid verb? */
-   al_http_func_def_t *fd = al_http_get_func (state->http, state->verb);
-   if ((fd = al_http_get_func (state->http, state->verb)) == NULL) {
-      /* TODO: error. */
-      return 0;
-   }
+   /* if the request is still good, attempt to get our function.  if it
+    * doesn't exist, this becomes a bad request.  make sure we can't expliticly
+    * request an error while we're at it. */
+   al_http_func_def_t *fd = NULL;
+   if (state->status_code == 200)
+      if ((fd = al_http_get_func (state->http, state->verb)) == NULL ||
+          strcmp (state->verb, "ERROR") == 0)
+         al_http_set_status_code (state, 400);
 
-   /* run our function. */
-   int r = fd->func (state->connection->server, state->connection, state->http,
-      state, fd, state->uri);
+   /* if we don't have a function, this is a bad request.  we'll run a function
+    * hook with verb 'ERROR' if it exists. */
+   if (fd == NULL)
+      fd = al_http_get_func (state->http, "ERROR");
+
+   /* run our function, if it exists. */
+   if (fd)
+      fd->func (state, fd, state->uri);
 
    /* write everything out, including the header. */
    al_http_write_finish (state);
@@ -316,16 +325,12 @@ int al_http_state_finish (al_http_state_t *state)
    else
       al_connection_close (state->connection);
 
-   /* return whatever our function returned. */
-   return r;
+   /* return success. */
+   return 1;
 }
 
 int al_http_write_finish (al_http_state_t *state)
 {
-   /* do nothing if there's no input. */
-   if (state->connection->input == NULL)
-      return 0;
-
    /* lock server while writing to the connection. */
    al_server_lock (state->connection->server);
 
@@ -334,23 +339,38 @@ int al_http_write_finish (al_http_state_t *state)
    if (state->version == AL_HTTP_1_0 || state->version == AL_HTTP_1_1) {
       char header[8192];
       snprintf (header, sizeof (header),
-         "%s 200 OK\r\n"
+         "%s %d %s\r\n"
          "Cache-Control: no-cache\r\n"
          "Connection: close\r\n"
          "Content-Length: %ld\r\n"
-         "\r\n", state->version_str, state->output_len);
+         "\r\n", state->version_str, state->status_code,
+         al_http_status_code_string (state->status_code),
+         state->output_len);
       al_connection_write_string (state->connection, header);
    }
 
    /* TODO: eventually, there might be gzip compression or other
     * considerations. */
-   al_connection_write_string (state->connection,
-      (const char *) state->output);
-   free (state->output);
-   state->output = NULL;
+   if (state->output) {
+      al_connection_write_string (state->connection,
+         (const char *) state->output);
+      al_http_state_cleanup_output (state);
+   }
 
    /* return success. */
    al_server_unlock (state->connection->server);
+   return 1;
+}
+
+int al_http_state_cleanup_output (al_http_state_t *state)
+{
+   if (state->output == NULL)
+      return 0;
+   free (state->output);
+   state->output      = NULL;
+   state->output_size = 0;
+   state->output_len  = 0;
+   state->output_pos  = 0;
    return 1;
 }
 
@@ -422,4 +442,85 @@ int al_http_write_string (al_http_state_t *state, const char *string)
 {
    return al_http_write (state, (const unsigned char *) string,
       strlen (string));
+}
+
+const char *al_http_status_code_string (int status_code)
+{
+   switch (status_code) {
+      /* thanks, wikipedia! */
+      case 100: return "Continue";
+      case 101: return "Switching Protocols";
+      case 102: return "Processing";
+
+      case 200: return "OK";
+      case 201: return "Created";
+      case 202: return "Accepted";
+
+      case 203: return "Non-Authoritative Information";
+      case 204: return "No Content";
+      case 205: return "Reset Content";
+      case 206: return "Partial Content";
+      case 207: return "Multi-Status";
+      case 208: return "Already Reported";
+      case 226: return "IM Used";
+
+      case 300: return "Multiple Choices";
+      case 301: return "Moved Permanently";
+      case 302: return "Found";
+      case 303: return "See Other";
+      case 304: return "Not Modified";
+      case 305: return "Use Proxy";
+      case 306: return "Switch Proxy";
+      case 307: return "Temporary Redirect";
+      case 308: return "Permanent Redirect";
+
+      case 400: return "Bad Request";
+      case 401: return "Unauthorized";
+      case 402: return "Payment Required";
+      case 403: return "Forbidden";
+      case 404: return "Not Found";
+      case 405: return "Method Not Allowed";
+      case 406: return "Not Acceptable";
+      case 407: return "Proxy Authentication Required";
+      case 408: return "Request Timeout";
+      case 409: return "Conflict";
+      case 410: return "Gone";
+      case 411: return "Length Required";
+      case 412: return "Precondition Failed";
+      case 413: return "Payload Too Large";
+      case 414: return "URI Too Long";
+      case 415: return "Unsupported Media Type";
+      case 416: return "Range Not Satisfiable";
+      case 417: return "Expectation Failed";
+      case 418: return "I'm a teapot"; /* lol */
+      case 421: return "Misdirected Request";
+      case 422: return "Unprocessable Entity";
+      case 423: return "Locked";
+      case 424: return "Failed Dependency";
+      case 426: return "Upgrade Required";
+      case 428: return "Precondition Required";
+      case 429: return "Too Many Requests";
+      case 431: return "Request Header Fields Too Large";
+      case 451: return "Unavailable For Legal Reasons";
+
+      case 500: return "Internal Server Error";
+      case 501: return "Not Implemented";
+      case 502: return "Bad Gateway";
+      case 503: return "Service Unavailable";
+      case 504: return "Gateway Timeout";
+      case 505: return "HTTP Version Not Supported";
+      case 506: return "Variant Also Negotiates";
+      case 507: return "Insufficient Storage";
+      case 508: return "Loop Detected";
+      case 510: return "Not Extended";
+      case 511: return "Network Authentication Required";
+
+      default:  return "Unknown Status Code";
+   }
+}
+
+int al_http_set_status_code (al_http_state_t *state, int status_code)
+{
+   state->status_code = status_code;
+   return 1;
 }
