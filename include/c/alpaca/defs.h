@@ -73,8 +73,7 @@ typedef AL_SERVER_FUNC(al_server_func);
 typedef AL_MODULE_FUNC(al_module_func);
 
 #define AL_HTTP_FUNC(x) \
-   int x (al_server_t *server, al_connection_t *connection, al_http_t *http, \
-          al_http_state_t *state, al_http_func_def_t *func, const char *data)
+   int x (al_http_state_t *request, al_http_func_def_t *func, const char *data)
 typedef AL_HTTP_FUNC(al_http_func);
 
 #endif

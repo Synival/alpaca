@@ -4,13 +4,31 @@
 
 #include <alpaca/alpaca.h>
 
+AL_HTTP_FUNC (example_http_error)
+{
+   al_http_write_string (request,
+      "<!doctype html>\r\n"
+      "<html>\r\n"
+      "<body>\r\n"
+      "<h1>This request doesn't work!</h1>\r\n"
+      "<p>Whatever you did, you did it wrong!\r\n"
+      "</body>\r\n"
+      "</html>\r\n");
+   return 0;
+}
+
 AL_HTTP_FUNC (example_http_get)
 {
+   /* simulate an error if our URI is 'error'. */
+   if (strcmp (request->uri, "/error") == 0) {
+      al_http_set_status_code (request, 200);
+      return example_http_error (request, func, data);
+   }
+
    char html[8192];
-   size_t len;
 
    /* build a simple HTML page. */
-   len = snprintf (html, sizeof (html),
+   snprintf (html, sizeof (html),
       "<!doctype html>\r\n"
       "<html>\r\n"
       "<body>\r\n"
@@ -20,35 +38,26 @@ AL_HTTP_FUNC (example_http_get)
       "  <tr><td><b>Version</b>:</td><td>%s</td></tr>\r\n"
       "</table>\r\n"
       "<h1>Header:</h1>\r\n"
-      "<table>\r\n", state->verb, state->uri, state->version_str);
+      "<table>\r\n", request->verb, request->uri, request->version_str);
+   al_http_write_string (request, html);
 
    /* barf all the header info back to the client. */
    al_http_header_t *h;
-   for (h = state->header_list; h != NULL; h = h->next)
-      len += snprintf (html+ len, sizeof (html) - len,
+   for (h = request->header_list; h != NULL; h = h->next) {
+      snprintf (html, sizeof (html),
          "  <tr><td><b>%s</b>:</td><td>%s</td></tr>\r\n", h->name, h->value);
+      al_http_write_string (request, html);
+   }
 
    /* end our HTML. */
-   snprintf (html + len, sizeof (html) - len,
+   snprintf (html, sizeof (html),
       "</table>\r\n"
       "</body>\r\n"
       "</html>\r\n");
-
-   /* build our header AFTER the file so we have 'Content-Length'. */
-   char header[8192];
-   snprintf (header, sizeof (header),
-      "HTTP/1.1 200 OK\r\n"
-      "Cache-Control: no-cache\r\n"
-      "Connection: close\r\n"
-      "Content-Length: %ld\r\n"
-      "\r\n", (long int) strlen (html));
-
-   /* send out our header and web content. */
-   al_connection_write_string (connection, header);
-   al_connection_write_string (connection, html);
+   al_http_write_string (request, html);
 
    /* return success. */
-   return 1;
+   return 0;
 }
 
 int main (int argc, char **argv)
@@ -68,7 +77,8 @@ int main (int argc, char **argv)
 
    /* use an HTTP module and assign some basic functions to it. */
    al_http_t *http = al_http_init (server);
-   al_http_set_func (http, "GET", example_http_get);
+   al_http_set_func (http, "GET",   example_http_get);
+   al_http_set_func (http, "ERROR", example_http_error);
 
    /* start our server. */
    if (!al_server_start (server)) {
