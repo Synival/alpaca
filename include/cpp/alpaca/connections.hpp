@@ -21,7 +21,7 @@ public:
     int disconnect();
     bool operator==(const AlpacaConnection &rhs);
     bool operator==(const al_connection_t *rhs);
-    int writeString(char *string);
+    int writeString(const char *string);
     al_flags_t flags();
     int connectionWrote();
 };

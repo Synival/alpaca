@@ -33,7 +33,7 @@ bool AlpacaConnection::operator==(const al_connection_t *rhs) {
     return this->connection == rhs;
 }
 
-int AlpacaConnection::writeString(char *string) {
+int AlpacaConnection::writeString(const char *string) {
     return al_connection_write_string(this->connection, string);
 }
 

@@ -27,7 +27,7 @@ public:
     void printStatus();
     int wait();
     AlpacaConnection* getAlpacaConnection(al_connection_t *connection);
-    int broadcastGlobalMessage(char *string);
+    int broadcastGlobalMessage(const char *string);
     size_t numConnections();
     int disconnectClient(AlpacaConnection *connection);
     

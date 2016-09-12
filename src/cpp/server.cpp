@@ -67,7 +67,7 @@ AlpacaConnection* AlpacaServer::getAlpacaConnection(al_connection_t *connection)
         return find->second;
 }
 
-int AlpacaServer::broadcastGlobalMessage(char *string) {
+int AlpacaServer::broadcastGlobalMessage(const char *string) {
 //    for (unordered_map<al_connection_t *, AlpacaConnection *>::iterator connection = this->connections.begin();
 //        connection != this->connections.end(); connection++)
 //    {
