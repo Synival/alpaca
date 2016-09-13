@@ -104,23 +104,28 @@ int al_http_state_method (al_http_state_t *state, const char *line)
    char mline[len + 1];
    memcpy (mline, line, len + 1);
 
+   /* skip initial spaces and do nothing for blank lines. */
+   while (*line == ' ')
+      line++;
+   if (*line == '\0')
+      return 1;
+
    /* make sure there's at least a verb and a URI. */
    char *verb = mline, *uri;
-   if ((uri = strchr (mline, ' ')) == NULL) {
-      return 0;
-   }
-   while (*uri == ' ') {
-      *uri = '\0';
-      uri++;
-   }
-   if (*uri == '\0') {
-      /* TODO: error code. */
-      return 0;
+   if ((uri = strchr (mline, ' ')) == NULL)
+      uri = "";
+   else {
+      while (*uri == ' ') {
+         *uri = '\0';
+         uri++;
+      }
    }
 
    /* is there an HTTP version string? */
    char *version_str;
-   if ((version_str = strchr (uri, ' ')) != NULL) {
+   if ((version_str = strchr (uri, ' ')) == NULL)
+      version_str = "";
+   else {
       while (*version_str == ' ') {
          *version_str = '\0';
          version_str++;
@@ -129,14 +134,16 @@ int al_http_state_method (al_http_state_t *state, const char *line)
          version_str = NULL;
    }
 
-   /* get the version based on the version string. */
-   int version = AL_HTTP_INVALID;
-   if (version_str == NULL || strcmp (version_str, "HTTP/0.9") == 0)
+   /* get the version based on the version string. fallback to HTTP/0.9. */
+   int version;
+   if (*version_str == '\0' || strcmp (version_str, "HTTP/0.9") == 0)
       version = AL_HTTP_0_9;
    else if (strcmp (version_str, "HTTP/1.0") == 0)
       version = AL_HTTP_1_0;
    else if (strcmp (version_str, "HTTP/1.1") == 0)
       version = AL_HTTP_1_1;
+   else
+      version = AL_HTTP_0_9;
 
    /* remember strings and version info. */
    al_util_replace_string (&(state->verb),        verb);
@@ -147,7 +154,7 @@ int al_http_state_method (al_http_state_t *state, const char *line)
    /* behavior is different now depending on version. */
    switch (state->version) {
       case AL_HTTP_0_9:
-         if (al_http_state_finish (state) != 1)
+         if (al_http_state_finish (state) == 0)
             return 0;
          break;
       case AL_HTTP_1_0:
@@ -204,8 +211,8 @@ int al_http_state_header (al_http_state_t *state, const char *line)
 AL_SERVER_FUNC (al_http_func_join)
 {
    /* log everything. */
-   AL_PRINTF ("JOIN:  #%d (%s)\n", connection->sock_fd,
-      connection->ip_address);
+   AL_PRINTF ("JOIN:  %s (%s) #%d\n", connection->hostname,
+      connection->ip_address, connection->sock_fd);
 
    /* initialize a blank state for our HTTP request. */
    al_http_state_t *state = calloc (1, sizeof (al_http_state_t));
@@ -232,8 +239,8 @@ int al_http_state_reset (al_http_state_t *state)
 AL_SERVER_FUNC (al_http_func_leave)
 {
    /* log everything. */
-   AL_PRINTF ("LEAVE: #%d (%s)\n", connection->sock_fd,
-      connection->ip_address);
+   AL_PRINTF ("LEAVE: %s (%s) #%d\n", connection->hostname,
+      connection->ip_address, connection->sock_fd);
    return 0;
 }
 
