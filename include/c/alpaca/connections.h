@@ -17,8 +17,8 @@ struct _al_connection_t {
    al_flags_t flags;
 
    /* socket stuff. */
-   int sock_fd;
-   struct sockaddr_in addr;
+   int fd_in, fd_out;
+   struct sockaddr_in *addr;
    socklen_t addr_size;
 
    /* input/output buffers. */
@@ -44,8 +44,8 @@ struct _al_func_pre_write_t {
 };
 
 /* functions for connection management. */
-al_connection_t *al_connection_new (al_server_t *server, int fd,
-   const struct sockaddr_in *addr, socklen_t addr_size);
+al_connection_t *al_connection_new (al_server_t *server, int fd_in, int fd_out,
+   const struct sockaddr_in *addr, socklen_t addr_size, al_flags_t flags);
 int al_connection_free (al_connection_t *c);
 int al_connection_close (al_connection_t *c);
 int al_connection_append_buffer (al_connection_t *c, unsigned char **buf,

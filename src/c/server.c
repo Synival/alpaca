@@ -302,19 +302,21 @@ int al_server_loop_func (al_server_t *server)
    /* add all other connections. */
    for (c = server->connection_list; c != NULL; c = c->next) {
       /* unless we're closing, read from this. */
-      if (!(c->flags & AL_CONNECTION_CLOSING))
-         FD_SET (c->sock_fd, &(server->fd_in));
+      if (c->fd_in >= 0 && !(c->flags & AL_CONNECTION_CLOSING)) {
+         FD_SET (c->fd_in, &(server->fd_in));
+         FD_SET (c->fd_in, &(server->fd_other));
+         fd_max = AL_MAX (fd_max, c->fd_in);
+      }
 
       /* if there's stuff to write, add to the write buffer. */
-      al_connection_stage_output (c);
-      if (c->flags & AL_CONNECTION_WRITING)
-         FD_SET (c->sock_fd, &(server->fd_out));
-
-      /* always add to the 'other' set. */
-      FD_SET (c->sock_fd, &(server->fd_other));
-
-      /* select() needs to know the highest file descriptor. */
-      fd_max = AL_MAX (fd_max, c->sock_fd);
+      if (c->fd_out >= 0) {
+         al_connection_stage_output (c);
+         if (c->flags & AL_CONNECTION_WRITING) {
+            FD_SET (c->fd_out, &(server->fd_out));
+            FD_SET (c->fd_out, &(server->fd_other));
+            fd_max = AL_MAX (fd_max, c->fd_out);
+         }
+      }
    }
 
    /* don't greedily lock the server while select() is waiting. */
@@ -347,7 +349,7 @@ int al_server_loop_func (al_server_t *server)
                         &client_addr_size)) < 0)
          AL_ERROR ("accept() error: %d\n", errno);
       else
-         al_connection_new (server, fd, &client_addr, client_addr_size);
+         al_connection_new (server, fd, fd, &client_addr, client_addr_size, 0);
    }
 
    /* check all of our connections for input. */
@@ -355,13 +357,14 @@ int al_server_loop_func (al_server_t *server)
       c_next = c->next;
 
       /* close connections with errors. */
-      if (FD_ISSET (c->sock_fd, &(server->fd_other))) {
+      if (FD_ISSET (c->fd_in,  &(server->fd_other)) ||
+          FD_ISSET (c->fd_out, &(server->fd_other))) {
          al_connection_free (c);
          continue;
       }
 
       /* can we input? */
-      if (FD_ISSET (c->sock_fd, &(server->fd_in))) {
+      if (FD_ISSET (c->fd_in, &(server->fd_in))) {
          if ((bytes_read = al_connection_fd_read (c)) < 0) {
             al_connection_free (c);
             continue;
@@ -396,11 +399,12 @@ int al_server_loop_func (al_server_t *server)
     * if they should be closed. */
    for (c = server->connection_list; c != NULL; c = c_next) {
       c_next = c->next;
-      if (FD_ISSET (c->sock_fd, &(server->fd_out)))
+      if (FD_ISSET (c->fd_out, &(server->fd_out))) {
          if (al_connection_fd_write (c) < 0) {
             al_connection_free (c);
             continue;
          }
+      }
       if (c->output_len == 0 && c->flags & AL_CONNECTION_CLOSING) {
          al_connection_free (c);
          continue;

@@ -18,10 +18,10 @@ int example_broadcast (al_connection_t *connection, char quote, char *message)
    /* different message depending on our quotes. */
    if (quote != '\0')
       snprintf (buf, sizeof (buf), "[%d][%s] %c%s%c\r\n",
-         connection->sock_fd, connection->ip_address, quote, message, quote);
+         connection->fd_in, connection->ip_address, quote, message, quote);
    else
       snprintf (buf, sizeof (buf), "[%d][%s] %s\r\n",
-         connection->sock_fd, connection->ip_address, message);
+         connection->fd_in, connection->ip_address, message);
 
    /* broadcast to the server and all clients. */
    printf ("%s", buf);

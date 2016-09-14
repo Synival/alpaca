@@ -220,7 +220,7 @@ AL_SERVER_FUNC (al_http_func_join)
 {
    /* log everything. */
    AL_PRINTF ("JOIN:  %s (%s) #%d\n", connection->hostname,
-      connection->ip_address, connection->sock_fd);
+      connection->ip_address, connection->fd_in);
 
    /* initialize a blank state for our HTTP request. */
    al_http_state_t *state = calloc (1, sizeof (al_http_state_t));
@@ -248,7 +248,7 @@ AL_SERVER_FUNC (al_http_func_leave)
 {
    /* log everything. */
    AL_PRINTF ("LEAVE: %s (%s) #%d\n", connection->hostname,
-      connection->ip_address, connection->sock_fd);
+      connection->ip_address, connection->fd_in);
    return 0;
 }
 

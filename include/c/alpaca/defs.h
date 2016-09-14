@@ -27,9 +27,10 @@
 #define AL_STATE_HEADER       1
 
 /* connection flags. */
-#define AL_CONNECTION_WRITING 0x01
-#define AL_CONNECTION_WROTE   0x02
-#define AL_CONNECTION_CLOSING 0x04
+#define AL_CONNECTION_WRITING    0x01
+#define AL_CONNECTION_WROTE      0x02
+#define AL_CONNECTION_CLOSING    0x04
+#define AL_CONNECTION_KEEP_OPEN  0x08
 
 /* server functions. */
 #define AL_SERVER_FUNC_JOIN      0
@@ -49,7 +50,7 @@
 #define AL_SERVER_STATE_IN_LOOP 0x10
 
 /* server flags. */
-/* #define AL_SERVER_REST  0x01 */
+/* TODO: 0x01 */
 #define AL_SERVER_CLOSE_AFTER_STOP  0x02
 
 /* type definitions. */

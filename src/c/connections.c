@@ -15,16 +15,20 @@
 
 #include "alpaca/connections.h"
 
-al_connection_t *al_connection_new (al_server_t *server, int fd,
-   const struct sockaddr_in *addr, socklen_t addr_size)
+al_connection_t *al_connection_new (al_server_t *server, int fd_in, int fd_out,
+   const struct sockaddr_in *addr, socklen_t addr_size, al_flags_t flags)
 {
    al_connection_t *new;
 
    /* allocate and assign data. */
    new = calloc (1, sizeof (al_connection_t));
-   new->sock_fd = fd;
+   new->fd_in  = fd_in;
+   new->fd_out = fd_out;
+   new->flags  = flags;
+
    if (addr) {
-      new->addr = *addr;
+      new->addr      = malloc (addr_size);
+      *(new->addr)   = *addr;
       new->addr_size = addr_size;
 
       /* record IP address. */
@@ -68,18 +72,24 @@ int al_connection_free (al_connection_t *c)
    if (server->func[AL_SERVER_FUNC_LEAVE])
       server->func[AL_SERVER_FUNC_LEAVE] (server, c, AL_SERVER_FUNC_LEAVE, 0);
 
-   /* free all modules. */
-   while (c->module_list)
-      al_module_free (c->module_list);
-
    /* attempt to send remaining output. */
    al_connection_stage_output (c);
    al_connection_fd_write (c);
 
+   /* free all modules. */
+   while (c->module_list)
+      al_module_free (c->module_list);
+
    /* close our socket. */
-   socket_close (c->sock_fd);
+   if (!(c->flags & AL_CONNECTION_KEEP_OPEN)) {
+      if (c->fd_in  >= 0)
+         socket_close (c->fd_in);
+      if (c->fd_out >= 0 && (c->fd_out != c->fd_in))
+         socket_close (c->fd_out);
+   }
 
    /* free all other allocated memory. */
+   if (c->addr)       free (c->addr);
    if (c->input)      free (c->input);
    if (c->output)     free (c->output);
    if (c->ip_address) free (c->ip_address);
@@ -194,11 +204,15 @@ int al_connection_read (al_connection_t *c, unsigned char *buf, size_t size)
 int al_connection_fd_read (al_connection_t *c)
 {
    static unsigned char buf[4096];
-   int res;
+
+   /* do nothing if there's no descriptor for reading. */
+   if (c->fd_in < 0)
+      return -1;
 
    /* attempt to read.  if it didn't work, the connection has been closed.
     * return -1 to indicate an error. */
-   if ((res = read (c->sock_fd, buf, 4096)) <= 0) {
+   int res;
+   if ((res = read (c->fd_in, buf, 4096)) <= 0) {
       unsigned char *ib;
       ib = malloc (c->input_len + 1);
       memcpy (ib, c->input, c->input_len);
@@ -217,6 +231,10 @@ int al_connection_fd_read (al_connection_t *c)
 
 int al_connection_fd_write (al_connection_t *c)
 {
+   /* do nothing if there's no descriptor for writing. */
+   if (c->fd_out < 0)
+      return -1;
+
    /* output at most 'c->output_max' bytes.  bail if there's no work for us. */
    size_t bytes = c->output_len - c->output_pos,
           max   = c->output_max < bytes ? c->output_max : bytes;
@@ -225,9 +243,9 @@ int al_connection_fd_write (al_connection_t *c)
 
    /* attempt to write to the socket. */
    int res;
-   if ((res = write (c->sock_fd, c->output + c->output_pos, bytes)) <= 0) {
+   if ((res = write (c->fd_out, c->output + c->output_pos, bytes)) <= 0) {
       AL_ERROR ("Couldn't write %ld bytes to client [%d].\n", bytes,
-                c->sock_fd);
+                c->fd_out);
       return -1;
    }
 
