@@ -24,6 +24,14 @@ AL_HTTP_FUNC (example_http_get)
       al_http_set_status_code (request, 200);
       return example_http_error (request, func, data);
    }
+   /* return a no-content page, whose response code should be 204. */
+   else if (al_uri_path_is (request->uri->path, "no_content", NULL)) {
+      al_http_set_status_code (request, 204);
+      return 0;
+   }
+   /* return a blank page (different from 'no_content'). */
+   else if (al_uri_path_is (request->uri->path, "blank", NULL))
+      return 0;
 
    char html[8192];
 

@@ -367,8 +367,10 @@ int al_http_write_finish (al_http_state_t *state)
    /* TODO: eventually, there might be gzip compression or other
     * considerations. */
    if (state->output) {
-      al_connection_write_string (state->connection,
-         (const char *) state->output);
+      /* if the status code is 204 (No Content), write nothing more. */
+      if (state->status_code != 204)
+         al_connection_write_string (state->connection,
+            (const char *) state->output);
       al_http_state_cleanup_output (state);
    }
 
