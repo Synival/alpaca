@@ -10,6 +10,9 @@
 #include "llist.h"
 #include "utils.h"
 
+/* URI flags. */
+#define AL_URI_RELATIVE       0x01
+
 /* HTTP versions. */
 #define AL_HTTP_INVALID      -1
 #define AL_HTTP_0_9           0
@@ -61,6 +64,9 @@ typedef struct _al_http_func_def_t  al_http_func_def_t;
 typedef struct _al_http_t           al_http_t;
 typedef struct _al_http_state_t     al_http_state_t;
 typedef struct _al_http_header_t    al_http_header_t;
+typedef struct _al_uri_t            al_uri_t;
+typedef struct _al_uri_path_t       al_uri_path_t;
+typedef struct _al_uri_parameter_t  al_uri_parameter_t;
 
 /* function macros and typedefs. */
 #define AL_SERVER_FUNC(x) \

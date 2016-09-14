@@ -9,6 +9,7 @@
 #include "alpaca/modules.h"
 #include "alpaca/read.h"
 #include "alpaca/server.h"
+#include "alpaca/uri.h"
 
 #include "alpaca/http.h"
 
@@ -50,8 +51,9 @@ AL_MODULE_FUNC (al_http_data_free)
 int al_http_state_cleanup (al_http_state_t *state)
 {
    if (state->verb)        {free (state->verb);       state->verb       =NULL;}
-   if (state->uri)         {free (state->uri);        state->uri        =NULL;}
+   if (state->uri_str)     {free (state->uri_str);    state->uri_str    =NULL;}
    if (state->version_str) {free (state->version_str);state->version_str=NULL;}
+   if (state->uri)         {al_uri_free (state->uri); state->uri        =NULL;}
    al_http_state_cleanup_output (state);
    al_http_header_clear (state);
    return 1;
@@ -111,19 +113,19 @@ int al_http_state_method (al_http_state_t *state, const char *line)
       return 1;
 
    /* make sure there's at least a verb and a URI. */
-   char *verb = mline, *uri;
-   if ((uri = strchr (mline, ' ')) == NULL)
-      uri = "";
+   char *verb = mline, *uri_str;
+   if ((uri_str = strchr (mline, ' ')) == NULL)
+      uri_str = "";
    else {
-      while (*uri == ' ') {
-         *uri = '\0';
-         uri++;
+      while (*uri_str == ' ') {
+         *uri_str = '\0';
+         uri_str++;
       }
    }
 
    /* is there an HTTP version string? */
    char *version_str;
-   if ((version_str = strchr (uri, ' ')) == NULL)
+   if ((version_str = strchr (uri_str, ' ')) == NULL)
       version_str = "";
    else {
       while (*version_str == ' ') {
@@ -147,9 +149,12 @@ int al_http_state_method (al_http_state_t *state, const char *line)
 
    /* remember strings and version info. */
    al_util_replace_string (&(state->verb),        verb);
-   al_util_replace_string (&(state->uri),         uri);
+   al_util_replace_string (&(state->uri_str),     uri_str);
    al_util_replace_string (&(state->version_str), version_str);
    state->version = version;
+
+   /* build our URI. */
+   state->uri = al_uri_new (uri_str);
 
    /* behavior is different now depending on version. */
    switch (state->version) {
@@ -321,7 +326,7 @@ int al_http_state_finish (al_http_state_t *state)
 
    /* run our function, if it exists. */
    if (fd)
-      fd->func (state, fd, state->uri);
+      fd->func (state, fd, NULL);
 
    /* write everything out, including the header. */
    al_http_write_finish (state);

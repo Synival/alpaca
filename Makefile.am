@@ -12,7 +12,8 @@ libalpaca_la_SOURCES = \
    src/c/read.c \
    src/c/http.c \
    src/c/server.c \
-   src/c/utils.c
+   src/c/utils.c \
+   src/c/uri.c
 
 libalpaca_cpp_la_LDFLAGS = \
    -release 0.0.1
@@ -28,6 +29,7 @@ libalpaca_cpp_la_SOURCES = \
    src/c/http.c \
    src/c/server.c \
    src/c/utils.c \
+   src/c/uri.c \
    src/cpp/server.cpp \
    src/cpp/connections.cpp \
    src/cpp/servers/basicserver.cpp \
@@ -45,7 +47,8 @@ otherinclude_HEADERS = \
    include/c/alpaca/read.h \
    include/c/alpaca/http.h \
    include/c/alpaca/server.h \
-   include/c/alpaca/utils.h
+   include/c/alpaca/utils.h \
+   include/c/alpaca/uri.h
 
 noinst_PROGRAMS = echoserver httpserver cpptest
 echoserver_SOURCES = src/examples-c/echoserver.c
