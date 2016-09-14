@@ -7,20 +7,20 @@
 AL_HTTP_FUNC (example_http_error)
 {
    al_http_write_string (request,
-      "<!doctype html>\r\n"
-      "<html>\r\n"
-      "<body>\r\n"
-      "<h1>This request doesn't work!</h1>\r\n"
-      "<p>Whatever you did, you did it wrong!\r\n"
-      "</body>\r\n"
-      "</html>\r\n");
+      "<!doctype html>\n"
+      "<html>\n"
+      "<body>\n"
+      "<h1>This request doesn't work!</h1>\n"
+      "<p>Whatever you did, you did it wrong!\n"
+      "</body>\n"
+      "</html>\n");
    return 0;
 }
 
 AL_HTTP_FUNC (example_http_get)
 {
    /* simulate an error if our URI is 'error'. */
-   if (strcmp (request->uri, "/error") == 0) {
+   if (strcmp (request->uri_str, "/error") == 0) {
       al_http_set_status_code (request, 200);
       return example_http_error (request, func, data);
    }
@@ -29,31 +29,56 @@ AL_HTTP_FUNC (example_http_get)
 
    /* build a simple HTML page. */
    snprintf (html, sizeof (html),
-      "<!doctype html>\r\n"
-      "<html>\r\n"
-      "<body>\r\n"
-      "<h1>%s request:</h1>\r\n"
-      "<table>\r\n"
-      "  <tr><td><b>URI</b>:</td><td>%s</td></tr>\r\n"
-      "  <tr><td><b>Version</b>:</td><td>%s</td></tr>\r\n"
-      "</table>\r\n"
-      "<h1>Header:</h1>\r\n"
-      "<table>\r\n", request->verb, request->uri, request->version_str);
+      "<!doctype html>\n"
+      "<html>\n"
+      "<body>\n"
+      "<h1>%s request:</h1>\n"
+      "<table>\n"
+      "  <tr><td><b>URI</b>:</td><td>%s</td></tr>\n"
+      "  <tr><td><b>Version</b>:</td><td>%s</td></tr>\n"
+      "</table>\n",
+      request->verb, request->uri_str, request->version_str);
    al_http_write_string (request, html);
 
    /* barf all the header info back to the client. */
    al_http_header_t *h;
+   al_http_write_string (request,
+      "<h1>Header:</h1>\n"
+      "<table>\n");
    for (h = request->header_list; h != NULL; h = h->next) {
       snprintf (html, sizeof (html),
-         "  <tr><td><b>%s</b>:</td><td>%s</td></tr>\r\n", h->name, h->value);
+         "  <tr><td><b>%s</b>:</td><td>%s</td></tr>\n", h->name, h->value);
       al_http_write_string (request, html);
    }
+   al_http_write_string (request, "</table>\n");
+
+   /* write detailed URI path information... */
+   al_http_write_string (request,
+      "<h1>URI Path:</h1>\n"
+      "<ul>\n");
+   al_uri_path_t *p;
+   for (p = request->uri->path; p != NULL; p = p->next) {
+      snprintf (html, sizeof (html), "   <li>%s</li>\n", p->name);
+      al_http_write_string (request, html);
+   }
+   al_http_write_string (request, "</ul>\n");
+
+   /* ...and the URI query. */
+   al_http_write_string (request,
+      "<h1>URI Query:</h1>\n"
+      "<ul>\n");
+   al_uri_parameter_t *q;
+   for (q = request->uri->parameters; q != NULL; q = q->next) {
+      snprintf (html, sizeof (html), "   <li>%s = %s</li>\n",
+         q->name, q->value);
+      al_http_write_string (request, html);
+   }
+   al_http_write_string (request, "</ul>\n");
 
    /* end our HTML. */
    snprintf (html, sizeof (html),
-      "</table>\r\n"
-      "</body>\r\n"
-      "</html>\r\n");
+      "</body>\n"
+      "</html>\n");
    al_http_write_string (request, html);
 
    /* return success. */

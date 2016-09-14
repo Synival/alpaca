@@ -143,7 +143,8 @@ am__dirstamp = $(am__leading_dot)dirstamp
 am_libalpaca_la_OBJECTS = src/c/libalpaca_la-connections.lo \
 	src/c/libalpaca_la-modules.lo src/c/libalpaca_la-mutex.lo \
 	src/c/libalpaca_la-read.lo src/c/libalpaca_la-http.lo \
-	src/c/libalpaca_la-server.lo src/c/libalpaca_la-utils.lo
+	src/c/libalpaca_la-server.lo src/c/libalpaca_la-utils.lo \
+	src/c/libalpaca_la-uri.lo
 libalpaca_la_OBJECTS = $(am_libalpaca_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -158,7 +159,7 @@ am_libalpaca_cpp_la_OBJECTS = src/c/libalpaca_cpp_la-connections.lo \
 	src/c/libalpaca_cpp_la-mutex.lo src/c/libalpaca_cpp_la-read.lo \
 	src/c/libalpaca_cpp_la-http.lo \
 	src/c/libalpaca_cpp_la-server.lo \
-	src/c/libalpaca_cpp_la-utils.lo \
+	src/c/libalpaca_cpp_la-utils.lo src/c/libalpaca_cpp_la-uri.lo \
 	src/cpp/libalpaca_cpp_la-server.lo \
 	src/cpp/libalpaca_cpp_la-connections.lo \
 	src/cpp/servers/libalpaca_cpp_la-basicserver.lo \
@@ -429,7 +430,8 @@ libalpaca_la_SOURCES = \
    src/c/read.c \
    src/c/http.c \
    src/c/server.c \
-   src/c/utils.c
+   src/c/utils.c \
+   src/c/uri.c
 
 libalpaca_cpp_la_LDFLAGS = \
    -release 0.0.1
@@ -448,6 +450,7 @@ libalpaca_cpp_la_SOURCES = \
    src/c/http.c \
    src/c/server.c \
    src/c/utils.c \
+   src/c/uri.c \
    src/cpp/server.cpp \
    src/cpp/connections.cpp \
    src/cpp/servers/basicserver.cpp \
@@ -466,7 +469,8 @@ otherinclude_HEADERS = \
    include/c/alpaca/read.h \
    include/c/alpaca/http.h \
    include/c/alpaca/server.h \
-   include/c/alpaca/utils.h
+   include/c/alpaca/utils.h \
+   include/c/alpaca/uri.h
 
 echoserver_SOURCES = src/examples-c/echoserver.c
 echoserver_CFLAGS = -I$(top_srcdir)/include/c -Wall -std=c99
@@ -585,6 +589,8 @@ src/c/libalpaca_la-server.lo: src/c/$(am__dirstamp) \
 	src/c/$(DEPDIR)/$(am__dirstamp)
 src/c/libalpaca_la-utils.lo: src/c/$(am__dirstamp) \
 	src/c/$(DEPDIR)/$(am__dirstamp)
+src/c/libalpaca_la-uri.lo: src/c/$(am__dirstamp) \
+	src/c/$(DEPDIR)/$(am__dirstamp)
 
 libalpaca.la: $(libalpaca_la_OBJECTS) $(libalpaca_la_DEPENDENCIES) $(EXTRA_libalpaca_la_DEPENDENCIES) 
 	$(AM_V_CCLD)$(libalpaca_la_LINK) -rpath $(libdir) $(libalpaca_la_OBJECTS) $(libalpaca_la_LIBADD) $(LIBS)
@@ -601,6 +607,8 @@ src/c/libalpaca_cpp_la-http.lo: src/c/$(am__dirstamp) \
 src/c/libalpaca_cpp_la-server.lo: src/c/$(am__dirstamp) \
 	src/c/$(DEPDIR)/$(am__dirstamp)
 src/c/libalpaca_cpp_la-utils.lo: src/c/$(am__dirstamp) \
+	src/c/$(DEPDIR)/$(am__dirstamp)
+src/c/libalpaca_cpp_la-uri.lo: src/c/$(am__dirstamp) \
 	src/c/$(DEPDIR)/$(am__dirstamp)
 src/cpp/$(am__dirstamp):
 	@$(MKDIR_P) src/cpp
@@ -691,6 +699,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_cpp_la-mutex.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_cpp_la-read.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_cpp_la-server.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_cpp_la-uri.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_cpp_la-utils.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-connections.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-http.Plo@am__quote@
@@ -698,6 +707,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-mutex.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-read.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-server.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-uri.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/c/$(DEPDIR)/libalpaca_la-utils.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/cpp/$(DEPDIR)/libalpaca_cpp_la-connections.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/cpp/$(DEPDIR)/libalpaca_cpp_la-server.Plo@am__quote@
@@ -779,6 +789,13 @@ src/c/libalpaca_la-utils.lo: src/c/utils.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -c -o src/c/libalpaca_la-utils.lo `test -f 'src/c/utils.c' || echo '$(srcdir)/'`src/c/utils.c
 
+src/c/libalpaca_la-uri.lo: src/c/uri.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -MT src/c/libalpaca_la-uri.lo -MD -MP -MF src/c/$(DEPDIR)/libalpaca_la-uri.Tpo -c -o src/c/libalpaca_la-uri.lo `test -f 'src/c/uri.c' || echo '$(srcdir)/'`src/c/uri.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/c/$(DEPDIR)/libalpaca_la-uri.Tpo src/c/$(DEPDIR)/libalpaca_la-uri.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/c/uri.c' object='src/c/libalpaca_la-uri.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_la_CFLAGS) $(CFLAGS) -c -o src/c/libalpaca_la-uri.lo `test -f 'src/c/uri.c' || echo '$(srcdir)/'`src/c/uri.c
+
 src/c/libalpaca_cpp_la-connections.lo: src/c/connections.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_cpp_la_CFLAGS) $(CFLAGS) -MT src/c/libalpaca_cpp_la-connections.lo -MD -MP -MF src/c/$(DEPDIR)/libalpaca_cpp_la-connections.Tpo -c -o src/c/libalpaca_cpp_la-connections.lo `test -f 'src/c/connections.c' || echo '$(srcdir)/'`src/c/connections.c
 @am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/c/$(DEPDIR)/libalpaca_cpp_la-connections.Tpo src/c/$(DEPDIR)/libalpaca_cpp_la-connections.Plo
@@ -827,6 +844,13 @@ src/c/libalpaca_cpp_la-utils.lo: src/c/utils.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/c/utils.c' object='src/c/libalpaca_cpp_la-utils.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_cpp_la_CFLAGS) $(CFLAGS) -c -o src/c/libalpaca_cpp_la-utils.lo `test -f 'src/c/utils.c' || echo '$(srcdir)/'`src/c/utils.c
+
+src/c/libalpaca_cpp_la-uri.lo: src/c/uri.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_cpp_la_CFLAGS) $(CFLAGS) -MT src/c/libalpaca_cpp_la-uri.lo -MD -MP -MF src/c/$(DEPDIR)/libalpaca_cpp_la-uri.Tpo -c -o src/c/libalpaca_cpp_la-uri.lo `test -f 'src/c/uri.c' || echo '$(srcdir)/'`src/c/uri.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) src/c/$(DEPDIR)/libalpaca_cpp_la-uri.Tpo src/c/$(DEPDIR)/libalpaca_cpp_la-uri.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='src/c/uri.c' object='src/c/libalpaca_cpp_la-uri.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libalpaca_cpp_la_CFLAGS) $(CFLAGS) -c -o src/c/libalpaca_cpp_la-uri.lo `test -f 'src/c/uri.c' || echo '$(srcdir)/'`src/c/uri.c
 
 src/examples-c/echoserver-echoserver.o: src/examples-c/echoserver.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(echoserver_CFLAGS) $(CFLAGS) -MT src/examples-c/echoserver-echoserver.o -MD -MP -MF src/examples-c/$(DEPDIR)/echoserver-echoserver.Tpo -c -o src/examples-c/echoserver-echoserver.o `test -f 'src/examples-c/echoserver.c' || echo '$(srcdir)/'`src/examples-c/echoserver.c

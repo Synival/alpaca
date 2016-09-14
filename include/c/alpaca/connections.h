@@ -34,7 +34,7 @@ struct _al_connection_t {
    al_connection_t *prev, *next;
 
    /* identifying data. */
-   char *ip_address;
+   char *ip_address, *hostname;
 };
 
 /* data sent via AL_SERVER_PRE_WRITE_FUNC. */

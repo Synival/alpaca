@@ -26,10 +26,11 @@ struct _al_http_t {
 struct _al_http_state_t {
    int state, version, status_code;
    al_flags_t flags;
-   char *verb, *uri, *version_str;
+   char *verb, *uri_str, *version_str;
    al_connection_t *connection;
    al_http_t *http;
    al_http_header_t *header_list;
+   al_uri_t *uri;
 
    /* output buffer. */
    unsigned char *output;

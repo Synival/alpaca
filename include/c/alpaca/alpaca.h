@@ -10,5 +10,6 @@
 #include "modules.h"
 #include "read.h"
 #include "server.h"
+#include "uri.h"
 
 #endif

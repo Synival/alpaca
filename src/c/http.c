@@ -9,6 +9,7 @@
 #include "alpaca/modules.h"
 #include "alpaca/read.h"
 #include "alpaca/server.h"
+#include "alpaca/uri.h"
 
 #include "alpaca/http.h"
 
@@ -50,8 +51,9 @@ AL_MODULE_FUNC (al_http_data_free)
 int al_http_state_cleanup (al_http_state_t *state)
 {
    if (state->verb)        {free (state->verb);       state->verb       =NULL;}
-   if (state->uri)         {free (state->uri);        state->uri        =NULL;}
+   if (state->uri_str)     {free (state->uri_str);    state->uri_str    =NULL;}
    if (state->version_str) {free (state->version_str);state->version_str=NULL;}
+   if (state->uri)         {al_uri_free (state->uri); state->uri        =NULL;}
    al_http_state_cleanup_output (state);
    al_http_header_clear (state);
    return 1;
@@ -104,23 +106,28 @@ int al_http_state_method (al_http_state_t *state, const char *line)
    char mline[len + 1];
    memcpy (mline, line, len + 1);
 
+   /* skip initial spaces and do nothing for blank lines. */
+   while (*line == ' ')
+      line++;
+   if (*line == '\0')
+      return 1;
+
    /* make sure there's at least a verb and a URI. */
-   char *verb = mline, *uri;
-   if ((uri = strchr (mline, ' ')) == NULL) {
-      return 0;
-   }
-   while (*uri == ' ') {
-      *uri = '\0';
-      uri++;
-   }
-   if (*uri == '\0') {
-      /* TODO: error code. */
-      return 0;
+   char *verb = mline, *uri_str;
+   if ((uri_str = strchr (mline, ' ')) == NULL)
+      uri_str = "";
+   else {
+      while (*uri_str == ' ') {
+         *uri_str = '\0';
+         uri_str++;
+      }
    }
 
    /* is there an HTTP version string? */
    char *version_str;
-   if ((version_str = strchr (uri, ' ')) != NULL) {
+   if ((version_str = strchr (uri_str, ' ')) == NULL)
+      version_str = "";
+   else {
       while (*version_str == ' ') {
          *version_str = '\0';
          version_str++;
@@ -129,25 +136,30 @@ int al_http_state_method (al_http_state_t *state, const char *line)
          version_str = NULL;
    }
 
-   /* get the version based on the version string. */
-   int version = AL_HTTP_INVALID;
-   if (version_str == NULL || strcmp (version_str, "HTTP/0.9") == 0)
+   /* get the version based on the version string. fallback to HTTP/0.9. */
+   int version;
+   if (*version_str == '\0' || strcmp (version_str, "HTTP/0.9") == 0)
       version = AL_HTTP_0_9;
    else if (strcmp (version_str, "HTTP/1.0") == 0)
       version = AL_HTTP_1_0;
    else if (strcmp (version_str, "HTTP/1.1") == 0)
       version = AL_HTTP_1_1;
+   else
+      version = AL_HTTP_0_9;
 
    /* remember strings and version info. */
    al_util_replace_string (&(state->verb),        verb);
-   al_util_replace_string (&(state->uri),         uri);
+   al_util_replace_string (&(state->uri_str),     uri_str);
    al_util_replace_string (&(state->version_str), version_str);
    state->version = version;
+
+   /* build our URI. */
+   state->uri = al_uri_new (uri_str);
 
    /* behavior is different now depending on version. */
    switch (state->version) {
       case AL_HTTP_0_9:
-         if (al_http_state_finish (state) != 1)
+         if (al_http_state_finish (state) == 0)
             return 0;
          break;
       case AL_HTTP_1_0:
@@ -204,8 +216,8 @@ int al_http_state_header (al_http_state_t *state, const char *line)
 AL_SERVER_FUNC (al_http_func_join)
 {
    /* log everything. */
-   AL_PRINTF ("JOIN:  #%d (%s)\n", connection->sock_fd,
-      connection->ip_address);
+   AL_PRINTF ("JOIN:  %s (%s) #%d\n", connection->hostname,
+      connection->ip_address, connection->sock_fd);
 
    /* initialize a blank state for our HTTP request. */
    al_http_state_t *state = calloc (1, sizeof (al_http_state_t));
@@ -232,8 +244,8 @@ int al_http_state_reset (al_http_state_t *state)
 AL_SERVER_FUNC (al_http_func_leave)
 {
    /* log everything. */
-   AL_PRINTF ("LEAVE: #%d (%s)\n", connection->sock_fd,
-      connection->ip_address);
+   AL_PRINTF ("LEAVE: %s (%s) #%d\n", connection->hostname,
+      connection->ip_address, connection->sock_fd);
    return 0;
 }
 
@@ -314,7 +326,7 @@ int al_http_state_finish (al_http_state_t *state)
 
    /* run our function, if it exists. */
    if (fd)
-      fd->func (state, fd, state->uri);
+      fd->func (state, fd, NULL);
 
    /* write everything out, including the header. */
    al_http_write_finish (state);

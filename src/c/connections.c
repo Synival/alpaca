@@ -3,10 +3,12 @@
  * connection management for servers. */
 
 #include <arpa/inet.h>
+#include <sys/socket.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <netdb.h>
 
 #include "alpaca/modules.h"
 #include "alpaca/server.h"
@@ -24,12 +26,20 @@ al_connection_t *al_connection_new (al_server_t *server, int fd,
    if (addr) {
       new->addr = *addr;
       new->addr_size = addr_size;
-   }
 
-   /* record IP address. */
-   char address[INET_ADDRSTRLEN];
-   inet_ntop (AF_INET, &(new->addr.sin_addr), address, INET_ADDRSTRLEN);
-   new->ip_address = strdup (address);
+      /* record IP address. */
+      char ip[INET_ADDRSTRLEN];
+      const char *ip_ptr;
+      ip_ptr = inet_ntop (AF_INET, &(addr->sin_addr), ip, INET_ADDRSTRLEN);
+      if (ip_ptr)
+         new->ip_address = strdup (ip_ptr);
+
+      /* get domain name. */
+      struct hostent *host = gethostbyaddr ((char *) &(addr->sin_addr),
+         sizeof (addr->sin_addr), AF_INET);
+      if (host && host->h_name)
+         new->hostname = strdup (host->h_name);
+   }
 
    /* link to our server. */
    al_server_lock (server);
@@ -70,12 +80,10 @@ int al_connection_free (al_connection_t *c)
    socket_close (c->sock_fd);
 
    /* free all other allocated memory. */
-   if (c->input)
-      free (c->input);
-   if (c->output)
-      free (c->output);
-   if (c->ip_address)
-      free (c->ip_address);
+   if (c->input)      free (c->input);
+   if (c->output)     free (c->output);
+   if (c->ip_address) free (c->ip_address);
+   if (c->hostname)   free (c->hostname);
 
    /* unlink. */
    AL_LL_UNLINK (c, prev, next, c->server, connection_list);
