@@ -7,120 +7,125 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		6DFF38DF1D88D48800A77241 /* AlPACA.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6DFF38DE1D88D48800A77241 /* AlPACA.framework */; };
-		6DFF38E11D88D4A600A77241 /* echoserver.c in Sources */ = {isa = PBXBuildFile; fileRef = 6DFF38E01D88D4A600A77241 /* echoserver.c */; };
+		6DFF38F81D88D5F600A77241 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 6DFF38F71D88D5F600A77241 /* Info.plist */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXCopyFilesBuildPhase section */
-		6DFF38D21D88D3DF00A77241 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXFileReference section */
-		6DFF38D41D88D3DF00A77241 /* echoserver */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = echoserver; sourceTree = BUILT_PRODUCTS_DIR; };
-		6DFF38DE1D88D48800A77241 /* AlPACA.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AlPACA.framework; path = "../../AlPACA-Framework-C/DerivedData/AlPACA-Framework-C/Build/Products/Debug/AlPACA.framework"; sourceTree = "<group>"; };
-		6DFF38E01D88D4A600A77241 /* echoserver.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = echoserver.c; path = "../../../src/examples-c/echoserver.c"; sourceTree = "<group>"; };
+		6DFF38EC1D88D5DD00A77241 /* AlPACA_CPP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AlPACA_CPP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		6DFF38F71D88D5F600A77241 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		6DFF38D11D88D3DF00A77241 /* Frameworks */ = {
+		6DFF38E81D88D5DD00A77241 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6DFF38DF1D88D48800A77241 /* AlPACA.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		6DFF38CB1D88D3DF00A77241 = {
+		6DFF38E21D88D5DD00A77241 = {
 			isa = PBXGroup;
 			children = (
-				6DFF38E01D88D4A600A77241 /* echoserver.c */,
-				6DFF38DE1D88D48800A77241 /* AlPACA.framework */,
-				6DFF38D51D88D3DF00A77241 /* Products */,
+				6DFF38F71D88D5F600A77241 /* Info.plist */,
+				6DFF38ED1D88D5DD00A77241 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		6DFF38D51D88D3DF00A77241 /* Products */ = {
+		6DFF38ED1D88D5DD00A77241 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				6DFF38D41D88D3DF00A77241 /* echoserver */,
+				6DFF38EC1D88D5DD00A77241 /* AlPACA_CPP.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
+/* Begin PBXHeadersBuildPhase section */
+		6DFF38E91D88D5DD00A77241 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
 /* Begin PBXNativeTarget section */
-		6DFF38D31D88D3DF00A77241 /* echoserver */ = {
+		6DFF38EB1D88D5DD00A77241 /* AlPACA_CPP */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 6DFF38DB1D88D3DF00A77241 /* Build configuration list for PBXNativeTarget "echoserver" */;
+			buildConfigurationList = 6DFF38F41D88D5DD00A77241 /* Build configuration list for PBXNativeTarget "AlPACA_CPP" */;
 			buildPhases = (
-				6DFF38D01D88D3DF00A77241 /* Sources */,
-				6DFF38D11D88D3DF00A77241 /* Frameworks */,
-				6DFF38D21D88D3DF00A77241 /* CopyFiles */,
+				6DFF38E71D88D5DD00A77241 /* Sources */,
+				6DFF38E81D88D5DD00A77241 /* Frameworks */,
+				6DFF38E91D88D5DD00A77241 /* Headers */,
+				6DFF38EA1D88D5DD00A77241 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = echoserver;
-			productName = "Echo-Server-C";
-			productReference = 6DFF38D41D88D3DF00A77241 /* echoserver */;
-			productType = "com.apple.product-type.tool";
+			name = AlPACA_CPP;
+			productName = "AlPACA-Framework-Cpp";
+			productReference = 6DFF38EC1D88D5DD00A77241 /* AlPACA_CPP.framework */;
+			productType = "com.apple.product-type.framework";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		6DFF38CC1D88D3DF00A77241 /* Project object */ = {
+		6DFF38E31D88D5DD00A77241 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0730;
 				TargetAttributes = {
-					6DFF38D31D88D3DF00A77241 = {
+					6DFF38EB1D88D5DD00A77241 = {
 						CreatedOnToolsVersion = 7.3.1;
 					};
 				};
 			};
-			buildConfigurationList = 6DFF38CF1D88D3DF00A77241 /* Build configuration list for PBXProject "Echo-Server-C" */;
+			buildConfigurationList = 6DFF38E61D88D5DD00A77241 /* Build configuration list for PBXProject "AlPACA-Framework-Cpp" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 			);
-			mainGroup = 6DFF38CB1D88D3DF00A77241;
-			productRefGroup = 6DFF38D51D88D3DF00A77241 /* Products */;
+			mainGroup = 6DFF38E21D88D5DD00A77241;
+			productRefGroup = 6DFF38ED1D88D5DD00A77241 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				6DFF38D31D88D3DF00A77241 /* echoserver */,
+				6DFF38EB1D88D5DD00A77241 /* AlPACA_CPP */,
 			);
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		6DFF38EA1D88D5DD00A77241 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6DFF38F81D88D5F600A77241 /* Info.plist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
-		6DFF38D01D88D3DF00A77241 /* Sources */ = {
+		6DFF38E71D88D5DD00A77241 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6DFF38E11D88D4A600A77241 /* echoserver.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		6DFF38D91D88D3DF00A77241 /* Debug */ = {
+		6DFF38F21D88D5DD00A77241 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -140,6 +145,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -161,10 +167,12 @@
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
 			};
 			name = Debug;
 		};
-		6DFF38DA1D88D3DF00A77241 /* Release */ = {
+		6DFF38F31D88D5DD00A77241 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -184,6 +192,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -198,48 +207,68 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
 			};
 			name = Release;
 		};
-		6DFF38DC1D88D3DF00A77241 /* Debug */ = {
+		6DFF38F51D88D5DD00A77241 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../../AlPACA-Framework-C/DerivedData/AlPACA-Framework-C/Build/Products/Debug/";
-				HEADER_SEARCH_PATHS = "$(SRCROOT)/../../../include/c/";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_VERSION = A;
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.llama.AlPACA-Framework-Cpp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
 			};
 			name = Debug;
 		};
-		6DFF38DD1D88D3DF00A77241 /* Release */ = {
+		6DFF38F61D88D5DD00A77241 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/../../AlPACA-Framework-C/DerivedData/AlPACA-Framework-C/Build/Products/Debug/";
-				HEADER_SEARCH_PATHS = "$(SRCROOT)/../../../include/c/";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_VERSION = A;
+				INFOPLIST_FILE = Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.llama.AlPACA-Framework-Cpp";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		6DFF38CF1D88D3DF00A77241 /* Build configuration list for PBXProject "Echo-Server-C" */ = {
+		6DFF38E61D88D5DD00A77241 /* Build configuration list for PBXProject "AlPACA-Framework-Cpp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				6DFF38D91D88D3DF00A77241 /* Debug */,
-				6DFF38DA1D88D3DF00A77241 /* Release */,
+				6DFF38F21D88D5DD00A77241 /* Debug */,
+				6DFF38F31D88D5DD00A77241 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		6DFF38DB1D88D3DF00A77241 /* Build configuration list for PBXNativeTarget "echoserver" */ = {
+		6DFF38F41D88D5DD00A77241 /* Build configuration list for PBXNativeTarget "AlPACA_CPP" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				6DFF38DC1D88D3DF00A77241 /* Debug */,
-				6DFF38DD1D88D3DF00A77241 /* Release */,
+				6DFF38F51D88D5DD00A77241 /* Debug */,
+				6DFF38F61D88D5DD00A77241 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 6DFF38CC1D88D3DF00A77241 /* Project object */;
+	rootObject = 6DFF38E31D88D5DD00A77241 /* Project object */;
 }
