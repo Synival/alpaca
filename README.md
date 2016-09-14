@@ -1,7 +1,7 @@
 # `AlPACA`
 **[AL]**l-**[P]**urpose **[A]**synchronous **[C]**ryptography **[A]**rchitecture
 
-AlPACA is a lightweight library that provides generic asynchronous data transfer using secure keys.  It is designed for implementing RESTful services as well as general data transfer over IPv4.  AlPACA is intended for use in a wide variety of languages, both client-side and server-side.
+AlPACA is a lightweight library that provides generic asynchronous data transfer using secure keys.  It is designed for implementing RESTful services as well as general data transfer over IPv4.  AlPACA can be used in a wide variety of languages in both client-side and server-side operations.
 
 #### Project Status
 
