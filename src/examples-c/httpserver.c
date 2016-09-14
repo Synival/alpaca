@@ -20,7 +20,7 @@ AL_HTTP_FUNC (example_http_error)
 AL_HTTP_FUNC (example_http_get)
 {
    /* simulate an error if our URI is 'error'. */
-   if (strcmp (request->uri_str, "/error") == 0) {
+   if (al_uri_path_is (request->uri->path, "error", NULL)) {
       al_http_set_status_code (request, 200);
       return example_http_error (request, func, data);
    }
@@ -58,7 +58,8 @@ AL_HTTP_FUNC (example_http_get)
       "<ul>\n");
    al_uri_path_t *p;
    for (p = request->uri->path; p != NULL; p = p->next) {
-      snprintf (html, sizeof (html), "   <li>%s</li>\n", p->name);
+      snprintf (html, sizeof (html), "   <li>%s</li>\n",
+         (p->name[0] != '\0') ? p->name : "<i>(default)</i>");
       al_http_write_string (request, html);
    }
    al_http_write_string (request, "</ul>\n");
