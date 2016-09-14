@@ -9,14 +9,12 @@
    #include "config.h"
 #endif
 
-#if defined __APPLE__
+#ifndef HAVE_STRDUP
+#if (defined __APPLE__) || (defined _SVID_SOURCE) || (defined _BSD_SOURCE) || \
+    (_XOPEN_SOURCE >= 500) || ((defined _XOPEN_SOURCE) && \
+    (defined _XOPEN_SOURCE_EXTENDED)) || _POSIX_C_SOURCE >= 200809L
    #define HAVE_STRDUP
 #endif
-
-#if (defined _SVID_SOURCE) || (defined _BSD_SOURCE) || (_XOPEN_SOURCE >= 500) \
-       || ((defined _XOPEN_SOURCE) && \
-       (defined _XOPEN_SOURCE_EXTENDED)) || _POSIX_C_SOURCE >= 200809L
-   #define HAVE_STRDUP
 #endif
 
 #ifndef HAVE_STRDUP

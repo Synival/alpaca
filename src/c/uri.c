@@ -3,6 +3,7 @@
  * URI interpretation and break-down for requests. */
 
 #include <ctype.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,10 +42,6 @@ al_uri_t *al_uri_new (const char *string)
       new->str_query = NULL;
    }
 
-   /* if the path doesn't start with '/', it's a relative path. */
-   if (new->str_path[0] != '/')
-      new->flags |= AL_URI_RELATIVE;
-
    /* variables used for tokenization coming up. */
    char *str, *pos, *next;
    int illegal = 0;
@@ -54,12 +51,18 @@ al_uri_t *al_uri_new (const char *string)
       char decoded[256];
       al_uri_path_t *p = NULL;
 
+      /* if the path doesn't start with '/', it's a relative path. */
       str = strdup (new->str_path);
-      for (pos = str; pos != NULL; pos = next) {
+      pos = str;
+      if (pos[0] == '/')
+         pos++;
+      else
+         new->flags |= AL_URI_RELATIVE;
+
+      /* build path. */
+      for (; pos != NULL; pos = next) {
          if ((next = strchr (pos, '/')) != NULL)
             { *next = '\0'; next++; }
-         if (pos[0] == '\0')
-            continue;
 
          /* decode the entire token. */
          if (!al_uri_decode (pos, decoded, sizeof (decoded))) {
@@ -176,7 +179,7 @@ char *al_uri_decode (const char *input, char *output, size_t output_size)
 }
 
 al_uri_path_t *al_uri_path_append (al_uri_t *uri, al_uri_path_t *prev,
-   char *name)
+   const char *name)
 {
    /* initialize a path node with a name. */
    al_uri_path_t *new = calloc (1, sizeof (al_uri_path_t));
@@ -205,7 +208,7 @@ int al_uri_path_free (al_uri_path_t *path)
 }
 
 al_uri_parameter_t *al_uri_parameter_append (al_uri_t *uri,
-   al_uri_parameter_t *prev, char *name, char *value)
+   al_uri_parameter_t *prev, const char *name, const char *value)
 {
    /* initialize a parameter with our name + value pair. */
    al_uri_parameter_t *new = calloc (1, sizeof (al_uri_parameter_t));
@@ -234,4 +237,54 @@ int al_uri_parameter_free (al_uri_parameter_t *param)
    AL_LL_UNLINK (param, prev, next, param->uri, parameters);
    free (param);
    return 1;
+}
+
+al_uri_path_t *al_uri_path_has_v (const al_uri_path_t *path, va_list args)
+{
+   const char *str;
+   const al_uri_path_t *last = NULL;
+
+   /* check 'path' with arguments until the argument is NULL.  for each
+    * match, move path to 'path->next'.  if all arguments matched, return
+    * the last successful match - otherwise, return NULL. */
+   while (1) {
+      if ((str = va_arg (args, const char *)) == NULL)
+         break;
+      if (path == NULL || strcmp (path->name, str) != 0)
+         return NULL;
+      last = path;
+      path = path->next;
+   }
+
+   /* return the last path node we found. */
+   return (al_uri_path_t *) last;
+}
+
+al_uri_path_t *al_uri_path_has (const al_uri_path_t *path, ...)
+{
+   va_list args;
+   al_uri_path_t *result;
+
+   /* send variable arguments to al_uri_path_has_v() and return the result. */
+   va_start (args, path);
+   result = al_uri_path_has_v (path, args);
+   va_end (args);
+   return result;
+}
+
+al_uri_path_t *al_uri_path_is (const al_uri_path_t *path, ...)
+{
+   va_list args;
+   al_uri_path_t *result;
+
+   /* send variable arguments to al_uri_path_has_v(). */
+   va_start (args, path);
+   result = al_uri_path_has_v (path, args);
+   va_end (args);
+
+   /* if there was no match OR there's additional nodes in the path,
+    * return failure.  otherwise, return the successful result. */
+   if (result == NULL || result->next != NULL)
+      return NULL;
+   return result;
 }
