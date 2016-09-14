@@ -8,11 +8,45 @@
 
 /* Begin PBXBuildFile section */
 		6DFF38F81D88D5F600A77241 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 6DFF38F71D88D5F600A77241 /* Info.plist */; };
+		6DFF39061D88D68900A77241 /* connections.c in Sources */ = {isa = PBXBuildFile; fileRef = 6DFF38FF1D88D68900A77241 /* connections.c */; };
+		6DFF39071D88D68900A77241 /* http.c in Sources */ = {isa = PBXBuildFile; fileRef = 6DFF39001D88D68900A77241 /* http.c */; };
+		6DFF39081D88D68900A77241 /* modules.c in Sources */ = {isa = PBXBuildFile; fileRef = 6DFF39011D88D68900A77241 /* modules.c */; };
+		6DFF39091D88D68900A77241 /* mutex.c in Sources */ = {isa = PBXBuildFile; fileRef = 6DFF39021D88D68900A77241 /* mutex.c */; };
+		6DFF390A1D88D68900A77241 /* read.c in Sources */ = {isa = PBXBuildFile; fileRef = 6DFF39031D88D68900A77241 /* read.c */; };
+		6DFF390B1D88D68900A77241 /* server.c in Sources */ = {isa = PBXBuildFile; fileRef = 6DFF39041D88D68900A77241 /* server.c */; };
+		6DFF390C1D88D68900A77241 /* utils.c in Sources */ = {isa = PBXBuildFile; fileRef = 6DFF39051D88D68900A77241 /* utils.c */; };
+		6DFF39171D88D6A500A77241 /* alpaca.h in Headers */ = {isa = PBXBuildFile; fileRef = 6DFF390D1D88D6A500A77241 /* alpaca.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		6DFF39181D88D6A500A77241 /* connections.h in Headers */ = {isa = PBXBuildFile; fileRef = 6DFF390E1D88D6A500A77241 /* connections.h */; };
+		6DFF39191D88D6A500A77241 /* defs.h in Headers */ = {isa = PBXBuildFile; fileRef = 6DFF390F1D88D6A500A77241 /* defs.h */; };
+		6DFF391A1D88D6A500A77241 /* http.h in Headers */ = {isa = PBXBuildFile; fileRef = 6DFF39101D88D6A500A77241 /* http.h */; };
+		6DFF391B1D88D6A500A77241 /* llist.h in Headers */ = {isa = PBXBuildFile; fileRef = 6DFF39111D88D6A500A77241 /* llist.h */; };
+		6DFF391C1D88D6A500A77241 /* modules.h in Headers */ = {isa = PBXBuildFile; fileRef = 6DFF39121D88D6A500A77241 /* modules.h */; };
+		6DFF391D1D88D6A500A77241 /* mutex.h in Headers */ = {isa = PBXBuildFile; fileRef = 6DFF39131D88D6A500A77241 /* mutex.h */; };
+		6DFF391E1D88D6A500A77241 /* read.h in Headers */ = {isa = PBXBuildFile; fileRef = 6DFF39141D88D6A500A77241 /* read.h */; };
+		6DFF391F1D88D6A500A77241 /* server.h in Headers */ = {isa = PBXBuildFile; fileRef = 6DFF39151D88D6A500A77241 /* server.h */; };
+		6DFF39201D88D6A500A77241 /* utils.h in Headers */ = {isa = PBXBuildFile; fileRef = 6DFF39161D88D6A500A77241 /* utils.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		6DFF38EC1D88D5DD00A77241 /* AlPACA_CPP.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = AlPACA_CPP.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6DFF38F71D88D5F600A77241 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		6DFF38FF1D88D68900A77241 /* connections.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = connections.c; path = ../../src/c/connections.c; sourceTree = "<group>"; };
+		6DFF39001D88D68900A77241 /* http.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = http.c; path = ../../src/c/http.c; sourceTree = "<group>"; };
+		6DFF39011D88D68900A77241 /* modules.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = modules.c; path = ../../src/c/modules.c; sourceTree = "<group>"; };
+		6DFF39021D88D68900A77241 /* mutex.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = mutex.c; path = ../../src/c/mutex.c; sourceTree = "<group>"; };
+		6DFF39031D88D68900A77241 /* read.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = read.c; path = ../../src/c/read.c; sourceTree = "<group>"; };
+		6DFF39041D88D68900A77241 /* server.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = server.c; path = ../../src/c/server.c; sourceTree = "<group>"; };
+		6DFF39051D88D68900A77241 /* utils.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = utils.c; path = ../../src/c/utils.c; sourceTree = "<group>"; };
+		6DFF390D1D88D6A500A77241 /* alpaca.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = alpaca.h; path = ../../include/c/alpaca/alpaca.h; sourceTree = "<group>"; };
+		6DFF390E1D88D6A500A77241 /* connections.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = connections.h; path = ../../include/c/alpaca/connections.h; sourceTree = "<group>"; };
+		6DFF390F1D88D6A500A77241 /* defs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = defs.h; path = ../../include/c/alpaca/defs.h; sourceTree = "<group>"; };
+		6DFF39101D88D6A500A77241 /* http.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = http.h; path = ../../include/c/alpaca/http.h; sourceTree = "<group>"; };
+		6DFF39111D88D6A500A77241 /* llist.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = llist.h; path = ../../include/c/alpaca/llist.h; sourceTree = "<group>"; };
+		6DFF39121D88D6A500A77241 /* modules.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = modules.h; path = ../../include/c/alpaca/modules.h; sourceTree = "<group>"; };
+		6DFF39131D88D6A500A77241 /* mutex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = mutex.h; path = ../../include/c/alpaca/mutex.h; sourceTree = "<group>"; };
+		6DFF39141D88D6A500A77241 /* read.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = read.h; path = ../../include/c/alpaca/read.h; sourceTree = "<group>"; };
+		6DFF39151D88D6A500A77241 /* server.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = server.h; path = ../../include/c/alpaca/server.h; sourceTree = "<group>"; };
+		6DFF39161D88D6A500A77241 /* utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = utils.h; path = ../../include/c/alpaca/utils.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -30,6 +64,8 @@
 			isa = PBXGroup;
 			children = (
 				6DFF38F71D88D5F600A77241 /* Info.plist */,
+				6DFF38FA1D88D65300A77241 /* include */,
+				6DFF38F91D88D64E00A77241 /* src */,
 				6DFF38ED1D88D5DD00A77241 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -42,6 +78,69 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		6DFF38F91D88D64E00A77241 /* src */ = {
+			isa = PBXGroup;
+			children = (
+				6DFF38FF1D88D68900A77241 /* connections.c */,
+				6DFF39001D88D68900A77241 /* http.c */,
+				6DFF39011D88D68900A77241 /* modules.c */,
+				6DFF39021D88D68900A77241 /* mutex.c */,
+				6DFF39031D88D68900A77241 /* read.c */,
+				6DFF39041D88D68900A77241 /* server.c */,
+				6DFF39051D88D68900A77241 /* utils.c */,
+				6DFF38FD1D88D66600A77241 /* c */,
+				6DFF38FE1D88D66900A77241 /* cpp */,
+			);
+			name = src;
+			sourceTree = "<group>";
+		};
+		6DFF38FA1D88D65300A77241 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				6DFF390D1D88D6A500A77241 /* alpaca.h */,
+				6DFF390E1D88D6A500A77241 /* connections.h */,
+				6DFF390F1D88D6A500A77241 /* defs.h */,
+				6DFF39101D88D6A500A77241 /* http.h */,
+				6DFF39111D88D6A500A77241 /* llist.h */,
+				6DFF39121D88D6A500A77241 /* modules.h */,
+				6DFF39131D88D6A500A77241 /* mutex.h */,
+				6DFF39141D88D6A500A77241 /* read.h */,
+				6DFF39151D88D6A500A77241 /* server.h */,
+				6DFF39161D88D6A500A77241 /* utils.h */,
+				6DFF38FB1D88D65A00A77241 /* c */,
+				6DFF38FC1D88D66000A77241 /* cpp */,
+			);
+			name = include;
+			sourceTree = "<group>";
+		};
+		6DFF38FB1D88D65A00A77241 /* c */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = c;
+			sourceTree = "<group>";
+		};
+		6DFF38FC1D88D66000A77241 /* cpp */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = cpp;
+			sourceTree = "<group>";
+		};
+		6DFF38FD1D88D66600A77241 /* c */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = c;
+			sourceTree = "<group>";
+		};
+		6DFF38FE1D88D66900A77241 /* cpp */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = cpp;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -49,6 +148,16 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6DFF39171D88D6A500A77241 /* alpaca.h in Headers */,
+				6DFF39201D88D6A500A77241 /* utils.h in Headers */,
+				6DFF391E1D88D6A500A77241 /* read.h in Headers */,
+				6DFF391A1D88D6A500A77241 /* http.h in Headers */,
+				6DFF391F1D88D6A500A77241 /* server.h in Headers */,
+				6DFF391D1D88D6A500A77241 /* mutex.h in Headers */,
+				6DFF39191D88D6A500A77241 /* defs.h in Headers */,
+				6DFF391C1D88D6A500A77241 /* modules.h in Headers */,
+				6DFF391B1D88D6A500A77241 /* llist.h in Headers */,
+				6DFF39181D88D6A500A77241 /* connections.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -119,6 +228,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6DFF390A1D88D68900A77241 /* read.c in Sources */,
+				6DFF390C1D88D68900A77241 /* utils.c in Sources */,
+				6DFF39061D88D68900A77241 /* connections.c in Sources */,
+				6DFF39071D88D68900A77241 /* http.c in Sources */,
+				6DFF39081D88D68900A77241 /* modules.c in Sources */,
+				6DFF390B1D88D68900A77241 /* server.c in Sources */,
+				6DFF39091D88D68900A77241 /* mutex.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -221,6 +337,7 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				FRAMEWORK_VERSION = A;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/../../include/c";
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";
@@ -239,6 +356,7 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				FRAMEWORK_VERSION = A;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/../../include/c";
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/Frameworks";

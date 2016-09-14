@@ -1,0 +1,33 @@
+{
+  'version': 0,
+  'case-sensitive': 'false',
+  'roots': [
+    {
+      'type': 'directory',
+      'name': "/Users/Happycake/Dropbox/Dev/My Projects/AlPACA/Xcode/AlPACA-Framework-Cpp/DerivedData/AlPACA-Framework-Cpp/Build/Products/Debug/AlPACA_CPP.framework/Headers",
+      'contents': [
+        {
+          'type': 'file',
+          'name': "AlPACA_CPP-Swift.h",
+          'external-contents': "/Users/Happycake/Dropbox/Dev/My Projects/AlPACA/Xcode/AlPACA-Framework-Cpp/DerivedData/AlPACA-Framework-Cpp/Build/Products/Debug/AlPACA_CPP.framework/Versions/A/Headers/AlPACA_CPP-Swift.h"
+        },
+        {
+          'type': 'file',
+          'name': "alpaca.h",
+          'external-contents': "/Users/Happycake/Dropbox/Dev/My Projects/AlPACA/include/c/alpaca/alpaca.h"
+        }
+      ]
+    },
+    {
+      'type': 'directory',
+      'name': "/Users/Happycake/Dropbox/Dev/My Projects/AlPACA/Xcode/AlPACA-Framework-Cpp/DerivedData/AlPACA-Framework-Cpp/Build/Products/Debug/AlPACA_CPP.framework/Modules",
+      'contents': [
+        {
+          'type': 'file',
+          'name': "module.modulemap",
+          'external-contents': "/Users/Happycake/Dropbox/Dev/My Projects/AlPACA/Xcode/AlPACA-Framework-Cpp/DerivedData/AlPACA-Framework-Cpp/Build/Intermediates/AlPACA-Framework-Cpp.build/Debug/AlPACA_CPP.build/module.modulemap"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+ const unsigned char AlPACA_CPPVersionString[] __attribute__ ((used)) = "@(#)PROGRAM:AlPACA_CPP  PROJECT:AlPACA-Framework-Cpp-1" "\n"; const double AlPACA_CPPVersionNumber __attribute__ ((used)) = (double)1.;
