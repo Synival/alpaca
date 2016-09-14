@@ -1,0 +1,6 @@
+framework module AlPACA {
+  umbrella header "AlPACA.h"
+
+  export *
+  module * { export * }
+}
