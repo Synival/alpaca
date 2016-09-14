@@ -153,8 +153,11 @@ int al_http_state_method (al_http_state_t *state, const char *line)
    al_util_replace_string (&(state->version_str), version_str);
    state->version = version;
 
-   /* build our URI. */
-   state->uri = al_uri_new (uri_str);
+   /* build our URI.  if it didn't work, status code is "Bad Request". */
+   if ((state->uri = al_uri_new (uri_str)) == NULL) {
+      printf ("Bad request!\n");
+      al_http_set_status_code (state, 400);
+   }
 
    /* behavior is different now depending on version. */
    switch (state->version) {
