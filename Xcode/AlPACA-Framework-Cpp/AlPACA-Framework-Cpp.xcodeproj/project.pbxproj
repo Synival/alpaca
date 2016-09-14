@@ -81,13 +81,6 @@
 		6DFF38F91D88D64E00A77241 /* src */ = {
 			isa = PBXGroup;
 			children = (
-				6DFF38FF1D88D68900A77241 /* connections.c */,
-				6DFF39001D88D68900A77241 /* http.c */,
-				6DFF39011D88D68900A77241 /* modules.c */,
-				6DFF39021D88D68900A77241 /* mutex.c */,
-				6DFF39031D88D68900A77241 /* read.c */,
-				6DFF39041D88D68900A77241 /* server.c */,
-				6DFF39051D88D68900A77241 /* utils.c */,
 				6DFF38FD1D88D66600A77241 /* c */,
 				6DFF38FE1D88D66900A77241 /* cpp */,
 			);
@@ -95,6 +88,15 @@
 			sourceTree = "<group>";
 		};
 		6DFF38FA1D88D65300A77241 /* include */ = {
+			isa = PBXGroup;
+			children = (
+				6DFF38FB1D88D65A00A77241 /* c */,
+				6DFF38FC1D88D66000A77241 /* cpp */,
+			);
+			name = include;
+			sourceTree = "<group>";
+		};
+		6DFF38FB1D88D65A00A77241 /* c */ = {
 			isa = PBXGroup;
 			children = (
 				6DFF390D1D88D6A500A77241 /* alpaca.h */,
@@ -107,15 +109,6 @@
 				6DFF39141D88D6A500A77241 /* read.h */,
 				6DFF39151D88D6A500A77241 /* server.h */,
 				6DFF39161D88D6A500A77241 /* utils.h */,
-				6DFF38FB1D88D65A00A77241 /* c */,
-				6DFF38FC1D88D66000A77241 /* cpp */,
-			);
-			name = include;
-			sourceTree = "<group>";
-		};
-		6DFF38FB1D88D65A00A77241 /* c */ = {
-			isa = PBXGroup;
-			children = (
 			);
 			name = c;
 			sourceTree = "<group>";
@@ -130,6 +123,13 @@
 		6DFF38FD1D88D66600A77241 /* c */ = {
 			isa = PBXGroup;
 			children = (
+				6DFF38FF1D88D68900A77241 /* connections.c */,
+				6DFF39001D88D68900A77241 /* http.c */,
+				6DFF39011D88D68900A77241 /* modules.c */,
+				6DFF39021D88D68900A77241 /* mutex.c */,
+				6DFF39031D88D68900A77241 /* read.c */,
+				6DFF39041D88D68900A77241 /* server.c */,
+				6DFF39051D88D68900A77241 /* utils.c */,
 			);
 			name = c;
 			sourceTree = "<group>";

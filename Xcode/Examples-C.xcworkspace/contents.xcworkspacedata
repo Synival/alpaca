@@ -2,6 +2,9 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:Examples/HTTP-Server-C/HTTP-Server-C.xcodeproj">
+   </FileRef>
+   <FileRef
       location = "group:Examples/Echo-Server-C/Echo-Server-C.xcodeproj">
    </FileRef>
 </Workspace>
