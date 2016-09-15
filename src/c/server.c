@@ -300,6 +300,7 @@ int al_server_loop_func (al_server_t *server)
    }
 
    /* add all other connections. */
+   struct timeval delay, now, *delay_ptr = NULL;
    for (c = server->connection_list; c != NULL; c = c->next) {
       /* unless we're closing, read from this. */
       if (c->fd_in >= 0 && !(c->flags & AL_CONNECTION_CLOSING)) {
@@ -317,6 +318,26 @@ int al_server_loop_func (al_server_t *server)
             fd_max = AL_MAX (fd_max, c->fd_out);
          }
       }
+
+      /* is there a timeout? if so, get the lowest one. */
+      if (c->timeout.tv_usec > 0 && c->timeout.tv_sec > 0) {
+         if (delay_ptr == NULL || timercmp (&(c->timeout), delay_ptr, <)) {
+            delay_ptr = &delay;
+            delay.tv_sec  = c->timeout.tv_sec;
+            delay.tv_usec = c->timeout.tv_usec;
+         }
+      }
+   }
+
+   /* if there's a timeout time, subtract 'now' to get the value
+    * for select(). */
+   if (delay_ptr) {
+      gettimeofday (&now, NULL);
+      timersub (delay_ptr, &now, delay_ptr);
+      if (delay.tv_sec < 0) {
+         delay.tv_sec  = 0;
+         delay.tv_usec = 0;
+      }
    }
 
    /* don't greedily lock the server while select() is waiting. */
@@ -324,7 +345,7 @@ int al_server_loop_func (al_server_t *server)
 
    /* wait forever until we have some activity. */
    if ((res = select (fd_max + 1, &(server->fd_in), &(server->fd_out),
-               &(server->fd_other), NULL)) == SOCKET_ERROR) {
+               &(server->fd_other), delay_ptr)) == SOCKET_ERROR) {
       if (errno != EINTR)
          AL_ERROR ("select() error: %d\n", errno);
       server->state |= AL_SERVER_STATE_QUIT;
@@ -350,6 +371,21 @@ int al_server_loop_func (al_server_t *server)
          AL_ERROR ("accept() error: %d\n", errno);
       else
          al_connection_new (server, fd, fd, &client_addr, client_addr_size, 0);
+   }
+
+   /* have any connections timed out? */
+   gettimeofday (&now, NULL);
+   for (c = server->connection_list; c != NULL; c = c_next) {
+      c_next = c->next;
+      if (c->timeout.tv_sec == 0 && c->timeout.tv_usec == 0)
+         continue;
+      if (timercmp (&(c->timeout), &now, <)) {
+         c->flags |= AL_CONNECTION_TIMED_OUT;
+         if (server->func[AL_SERVER_FUNC_TIMEOUT])
+            server->func[AL_SERVER_FUNC_TIMEOUT] (server, c,
+               AL_SERVER_FUNC_TIMEOUT, 0);
+         al_connection_free (c);
+      }
    }
 
    /* check all of our connections for input. */

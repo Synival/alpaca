@@ -24,14 +24,15 @@ al_http_t *al_http_init (al_server_t *server)
    /* allocate some HTTP data whose ownership will be transfered to
     * the HTTP module. */
    al_http_t *http_data = calloc (1, sizeof (al_http_t));
-   http_data->server = server;
+   http_data->server  = server;
+   http_data->timeout = AL_HTTP_TIMEOUT;
 
    /* create our module and set our own server function hooks. */
    al_module_t *module = al_server_module_new (server, "http", http_data,
       sizeof (al_http_t), al_http_data_free);
-   al_server_func_set (server, AL_SERVER_FUNC_READ,  al_http_func_read);
-   al_server_func_set (server, AL_SERVER_FUNC_JOIN,  al_http_func_join);
-   al_server_func_set (server, AL_SERVER_FUNC_LEAVE, al_http_func_leave);
+   al_server_func_set (server, AL_SERVER_FUNC_READ,    al_http_func_read);
+   al_server_func_set (server, AL_SERVER_FUNC_JOIN,    al_http_func_join);
+   al_server_func_set (server, AL_SERVER_FUNC_LEAVE,   al_http_func_leave);
 
    /* data we can set now that the module exists. */
    http_data->module = module;
@@ -154,10 +155,8 @@ int al_http_state_method (al_http_state_t *state, const char *line)
    state->version = version;
 
    /* build our URI.  if it didn't work, status code is "Bad Request". */
-   if ((state->uri = al_uri_new (uri_str)) == NULL) {
-      printf ("Bad request!\n");
+   if ((state->uri = al_uri_new (uri_str)) == NULL)
       al_http_set_status_code (state, 400);
-   }
 
    /* behavior is different now depending on version. */
    switch (state->version) {
@@ -207,7 +206,8 @@ int al_http_state_header (al_http_state_t *state, const char *line)
    name[name_len] = '\0';
 
    /* skip spaces for 'value'. */
-   while (*value == ' ') value++;
+   while (*value == ' ')
+      value++;
 
    /* add to header. */
    al_http_header_set (state, name, value);
@@ -219,7 +219,7 @@ int al_http_state_header (al_http_state_t *state, const char *line)
 AL_SERVER_FUNC (al_http_func_join)
 {
    /* log everything. */
-   AL_PRINTF ("JOIN:  %s (%s) #%d\n", connection->hostname,
+   AL_PRINTF ("JOIN:    %s (%s) #%d\n", connection->hostname,
       connection->ip_address, connection->fd_in);
 
    /* initialize a blank state for our HTTP request. */
@@ -227,6 +227,9 @@ AL_SERVER_FUNC (al_http_func_join)
    state->connection = connection;
    state->http = al_http_get (server);
    al_http_state_reset (state);
+
+   /* force the connection to timeout after a time. */
+   al_connection_set_timeout (connection, state->http->timeout);
 
    /* assign the http data and return success. */
    al_connection_module_new (connection, "http", state,
@@ -247,7 +250,8 @@ int al_http_state_reset (al_http_state_t *state)
 AL_SERVER_FUNC (al_http_func_leave)
 {
    /* log everything. */
-   AL_PRINTF ("LEAVE: %s (%s) #%d\n", connection->hostname,
+   AL_PRINTF ("%s%s (%s) #%d\n", (connection->flags & AL_CONNECTION_TIMED_OUT)
+      ? "TIMEOUT: " : "LEAVE:   ", connection->hostname,
       connection->ip_address, connection->fd_in);
    return 0;
 }
@@ -335,8 +339,10 @@ int al_http_state_finish (al_http_state_t *state)
    al_http_write_finish (state);
 
    /* should this connection be closed or kept alive? */
-   if (state->flags & AL_STATE_PERSIST)
+   if (state->flags & AL_STATE_PERSIST) {
       al_http_state_reset (state);
+      al_connection_set_timeout (state->connection, state->http->timeout);
+   }
    else
       al_connection_close (state->connection);
 
@@ -355,8 +361,6 @@ int al_http_write_finish (al_http_state_t *state)
       char header[8192];
       snprintf (header, sizeof (header),
          "%s %d %s\r\n"
-         "Cache-Control: no-cache\r\n"
-         "Connection: close\r\n"
          "Content-Length: %ld\r\n"
          "\r\n", state->version_str, state->status_code,
          al_http_status_code_string (state->status_code),
@@ -373,6 +377,10 @@ int al_http_write_finish (al_http_state_t *state)
             (const char *) state->output);
       al_http_state_cleanup_output (state);
    }
+
+   /* log our result. */
+   AL_PRINTF ("   #%d: [%s] [%s] [%s]\n", state->connection->fd_in,
+      state->verb, state->uri_str, state->version_str);
 
    /* return success. */
    al_server_unlock (state->connection->server);

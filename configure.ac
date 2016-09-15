@@ -29,7 +29,7 @@ AC_PROG_RANLIB
 
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h stdlib.h string.h sys/ioctl.h sys/socket.h unistd.h \
-   arpa/inet.h netdb.h strdup])
+   arpa/inet.h netdb.h sys/time.h])
 AC_CHECK_HEADER_STDBOOL
 
 # Checks for typedefs, structures, and compiler characteristics.
@@ -38,7 +38,8 @@ AC_TYPE_SIZE_T
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_FUNC_REALLOC
-AC_CHECK_FUNCS([memset select socket gethostbyaddr strchr strpbrk])
+AC_CHECK_FUNCS([memset select socket gethostbyaddr strchr strpbrk \
+   gettimeofday strdup timeradd timersub timercmp])
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT

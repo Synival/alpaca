@@ -4,6 +4,7 @@
 
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,9 +23,9 @@ al_connection_t *al_connection_new (al_server_t *server, int fd_in, int fd_out,
 
    /* allocate and assign data. */
    new = calloc (1, sizeof (al_connection_t));
-   new->fd_in  = fd_in;
-   new->fd_out = fd_out;
-   new->flags  = flags;
+   new->fd_in   = fd_in;
+   new->fd_out  = fd_out;
+   new->flags   = flags;
 
    if (addr) {
       new->addr      = malloc (addr_size);
@@ -331,4 +332,38 @@ al_module_t *al_connection_module_new (al_connection_t *connection,
 }
 al_module_t *al_connection_module_get (const al_connection_t *connection,
    const char *name)
-   { return al_module_get (&(connection->module_list), name); }
+{
+   return al_module_get (&(connection->module_list), name);
+}
+
+int al_connection_set_timeout (al_connection_t *connection, float timeout)
+{
+   /* are we cancelling the timeout? */
+   if (timeout < 0.00f) {
+      /* is it already off? */
+      if (connection->timeout.tv_usec == 0 && connection->timeout.tv_sec == 0)
+         return 0;
+      /* it's not. turn it off. */
+      else {
+         connection->timeout.tv_sec  = 0;
+         connection->timeout.tv_usec = 0;
+         return 1;
+      }
+   }
+
+   /* calculate the new time for timeout. */
+   struct timeval t, add, sum;
+   gettimeofday (&t, NULL);
+   add.tv_sec  = (time_t) timeout;
+   add.tv_usec = (suseconds_t) (1000000.00f * (timeout - (float) add.tv_sec));
+   timeradd (&t, &add, &sum);
+
+   /* is this sooner than before? if so, interrupt the server. */
+   if ((connection->timeout.tv_usec == 0 && connection->timeout.tv_sec == 0)
+       || timercmp (&sum, &(connection->timeout), <))
+      al_server_interrupt (connection->server);
+
+   /* set the new timeout and return success. */
+   connection->timeout = sum;
+   return 1;
+}

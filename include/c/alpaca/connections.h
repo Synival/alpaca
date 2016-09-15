@@ -6,6 +6,7 @@
 #define __ALPACA_C_CONNECTIONS_H
 
 #include <netinet/ip.h>
+#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 
@@ -15,6 +16,7 @@
 struct _al_connection_t {
    /* flags! */
    al_flags_t flags;
+   struct timeval timeout;
 
    /* socket stuff. */
    int fd_in, fd_out;
@@ -66,5 +68,6 @@ al_module_t *al_connection_module_new (al_connection_t *connection,
    const char *name, void *data, size_t data_size, al_module_func *free_func);
 al_module_t *al_connection_module_get (const al_connection_t *connection,
    const char *name);
+int al_connection_set_timeout (al_connection_t *connection, float timeout);
 
 #endif

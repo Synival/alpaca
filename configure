@@ -16735,7 +16735,7 @@ fi
 
 # Checks for header files.
 for ac_header in fcntl.h stdlib.h string.h sys/ioctl.h sys/socket.h unistd.h \
-   arpa/inet.h netdb.h strdup
+   arpa/inet.h netdb.h sys/time.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
@@ -16984,7 +16984,8 @@ $as_echo "#define realloc rpl_realloc" >>confdefs.h
 fi
 
 
-for ac_func in memset select socket gethostbyaddr strchr strpbrk
+for ac_func in memset select socket gethostbyaddr strchr strpbrk \
+   gettimeofday strdup timeradd timersub timercmp
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"

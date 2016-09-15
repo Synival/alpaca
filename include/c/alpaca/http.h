@@ -20,6 +20,9 @@ struct _al_http_t {
    al_server_t *server;
    al_module_t *module;
    al_http_func_def_t *func_list;
+
+   /* default options. */
+   float timeout;
 };
 
 /* state information for each connection. */

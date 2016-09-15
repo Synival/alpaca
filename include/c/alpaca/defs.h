@@ -10,6 +10,9 @@
 #include "llist.h"
 #include "utils.h"
 
+/* default options for HTTP modules. */
+#define AL_HTTP_TIMEOUT       5.00f
+
 /* URI flags. */
 #define AL_URI_RELATIVE       0x01
 
@@ -31,6 +34,7 @@
 #define AL_CONNECTION_WROTE      0x02
 #define AL_CONNECTION_CLOSING    0x04
 #define AL_CONNECTION_KEEP_OPEN  0x08
+#define AL_CONNECTION_TIMED_OUT  0x10
 
 /* server functions. */
 #define AL_SERVER_FUNC_JOIN      0
@@ -39,6 +43,7 @@
 #define AL_SERVER_FUNC_PRE_WRITE 3
 #define AL_SERVER_FUNC_STOPPED   4
 #define AL_SERVER_FUNC_CLOSED    5
+#define AL_SERVER_FUNC_TIMEOUT   6
 #define AL_SERVER_FUNC_MAX       8
 
 /* server state flags.  unless you're working on server code,
