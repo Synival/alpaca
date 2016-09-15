@@ -53,8 +53,8 @@ int al_module_free (al_module_t *m)
    if (m->next) m->next->prev = m->prev;
 
    /* free allocated data. */
-   if (m->data)
-      free (m->data);
+   if (m->name) free (m->name);
+   if (m->data) free (m->data);
 
    /* free the structure itself and return success. */
    free (m);
