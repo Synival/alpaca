@@ -210,7 +210,7 @@ int al_http_state_header (al_http_state_t *state, const char *line)
       value++;
 
    /* add to header. */
-   al_http_header_set (state, name, value);
+   al_http_header_request_set (state, name, value);
 
    /* return success. */
    return 1;
@@ -313,7 +313,7 @@ int al_http_state_finish (al_http_state_t *state)
     * set the status code to 'bad request'. */
    if (state->status_code == 200 && state->version == AL_HTTP_1_1) {
       /* TODO: do we need to DO anything with the host...? */
-      if (!al_http_header_get (state, "Host"))
+      if (!al_http_header_request_get (state, "Host"))
          al_http_set_status_code (state, 400);
    }
 
@@ -356,15 +356,26 @@ int al_http_write_finish (al_http_state_t *state)
    al_server_lock (state->connection->server);
 
    /* build a header based on content we built. */
-   /* TODO: make this configurable! */
    if (state->version == AL_HTTP_1_0 || state->version == AL_HTTP_1_1) {
       char header[8192];
-      snprintf (header, sizeof (header),
+      size_t len;
+
+      /* write our status code and content length. */
+      len = snprintf (header, sizeof (header),
          "%s %d %s\r\n"
-         "Content-Length: %ld\r\n"
-         "\r\n", state->version_str, state->status_code,
+         "Content-Length: %ld\r\n",
+         state->version_str, state->status_code,
          al_http_status_code_string (state->status_code),
          state->output_len);
+
+      /* write custom header data. */
+      al_http_header_t *h;
+      for (h = state->header_response; h != NULL; h = h->next)
+         len += snprintf (header + len, sizeof (header) - len, "%s: %s\r\n",
+            h->name, h->value);
+
+      /* end our header and send it out. */
+      len += snprintf (header + len, sizeof (header) - len, "\r\n");
       al_connection_write_string (state->connection, header);
    }
 
@@ -400,32 +411,37 @@ int al_http_state_cleanup_output (al_http_state_t *state)
 }
 
 al_http_header_t *al_http_header_set (al_http_state_t *state,
-   const char *name, const char *value)
+   al_http_header_t **headers, int type, const char *name, const char *value)
 {
    /* if there's already a field with this name, change the value. */
    al_http_header_t *h;
-   if ((h = al_http_header_get (state, name)) != NULL) {
+   if ((h = al_http_header_get (headers, name)) != NULL) {
       al_util_replace_string (&(h->value), value);
       return h;
    }
 
    /* create a new header and assign data. */
    h = calloc (1, sizeof (al_http_header_t));
+   h->type = type;
    al_util_replace_string (&(h->name),  name);
    al_util_replace_string (&(h->value), value);
 
    /* link to the front and return our new header field. */
-   AL_LL_LINK_FRONT (h, state, prev, next, state, header_list);
+   h->state = state;
+   h->next = *headers;
+   if (h->next)
+      h->next->prev = h;
+   *headers = h;
    return h;
 }
 
-al_http_header_t *al_http_header_get (const al_http_state_t *state,
+al_http_header_t *al_http_header_get (al_http_header_t *const *headers,
    const char *name)
 {
-   if (state == NULL || name == NULL)
+   if (headers == NULL || name == NULL)
       return NULL;
    al_http_header_t *h;
-   for (h = state->header_list; h != NULL; h = h->next)
+   for (h = *headers; h != NULL; h = h->next)
       if (strcmp (h->name, name) == 0)
          return h;
    return NULL;
@@ -438,20 +454,41 @@ int al_http_header_free (al_http_header_t *h)
    if (h->value) free (h->value);
 
    /* unlink. */
-   AL_LL_UNLINK (h, prev, next, h->state, header_list);
+   if (h->type == AL_HEADER_REQUEST)
+      AL_LL_UNLINK (h, prev, next, h->state, header_request);
+   if (h->type == AL_HEADER_RESPONSE)
+      AL_LL_UNLINK (h, prev, next, h->state, header_response);
 
    /* free the structure itself and return success. */
    free (h);
    return 1;
 }
 
+al_http_header_t *al_http_header_request_set (al_http_state_t *state,
+   const char *name, const char *value)
+{ return al_http_header_set (state, &(state->header_request),
+   AL_HEADER_REQUEST, name, value); }
+
+al_http_header_t *al_http_header_request_get (const al_http_state_t *state,
+   const char *name)
+{ return al_http_header_get (&(state->header_request), name); }
+
+al_http_header_t *al_http_header_response_set (al_http_state_t *state,
+   const char *name, const char *value)
+{ return al_http_header_set (state, &(state->header_response),
+   AL_HEADER_RESPONSE, name, value); }
+
+al_http_header_t *al_http_header_response_get (const al_http_state_t *state,
+   const char *name)
+{ return al_http_header_get (&(state->header_response), name); }
+
 int al_http_header_clear (al_http_state_t *state)
 {
    int count = 0;
-   while (state->header_list) {
-      al_http_header_free (state->header_list);
-      count++;
-   }
+   while (state->header_request)
+      count += al_http_header_free (state->header_request);
+   while (state->header_response)
+      count += al_http_header_free (state->header_response);
    return count;
 }
 

@@ -32,7 +32,7 @@ struct _al_http_state_t {
    char *verb, *uri_str, *version_str;
    al_connection_t *connection;
    al_http_t *http;
-   al_http_header_t *header_list;
+   al_http_header_t *header_request, *header_response;
    al_uri_t *uri;
 
    /* output buffer. */
@@ -42,6 +42,7 @@ struct _al_http_state_t {
 
 /* header information. */
 struct _al_http_header_t {
+   int type;
    char *name, *value;
    al_http_state_t *state;
    al_http_header_t *prev, *next;
@@ -66,8 +67,16 @@ int al_http_state_cleanup_output (al_http_state_t *state);
 
 /* state header management. */
 al_http_header_t *al_http_header_set (al_http_state_t *state,
+   al_http_header_t **headers, int type, const char *name, const char *value);
+al_http_header_t *al_http_header_get (al_http_header_t *const *headers,
+   const char *name);
+al_http_header_t *al_http_header_request_set (al_http_state_t *state,
    const char *name, const char *value);
-al_http_header_t *al_http_header_get (const al_http_state_t *state,
+al_http_header_t *al_http_header_request_get (const al_http_state_t *state,
+   const char *name);
+al_http_header_t *al_http_header_response_set (al_http_state_t *state,
+   const char *name, const char *value);
+al_http_header_t *al_http_header_response_get (const al_http_state_t *state,
    const char *name);
 int al_http_header_free (al_http_header_t *h);
 int al_http_header_clear (al_http_state_t *state);

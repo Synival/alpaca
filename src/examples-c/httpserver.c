@@ -6,6 +6,7 @@
 
 AL_HTTP_FUNC (example_http_error)
 {
+   al_http_header_response_set (request, "Content-Type", "text/html");
    al_http_write_string (request,
       "<!doctype html>\n"
       "<html>\n"
@@ -36,6 +37,7 @@ AL_HTTP_FUNC (example_http_get)
    char html[8192];
 
    /* build a simple HTML page. */
+   al_http_header_response_set (request, "Content-Type", "text/html");
    snprintf (html, sizeof (html),
       "<!doctype html>\n"
       "<html>\n"
@@ -53,7 +55,7 @@ AL_HTTP_FUNC (example_http_get)
    al_http_write_string (request,
       "<h1>Header:</h1>\n"
       "<table>\n");
-   for (h = request->header_list; h != NULL; h = h->next) {
+   for (h = request->header_request; h != NULL; h = h->next) {
       snprintf (html, sizeof (html),
          "  <tr><td><b>%s</b>:</td><td>%s</td></tr>\n", h->name, h->value);
       al_http_write_string (request, html);

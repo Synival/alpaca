@@ -29,6 +29,10 @@
 #define AL_STATE_METHOD       0
 #define AL_STATE_HEADER       1
 
+/* types of headers. */
+#define AL_HEADER_REQUEST     0
+#define AL_HEADER_RESPONSE    1
+
 /* connection flags. */
 #define AL_CONNECTION_WRITING    0x01
 #define AL_CONNECTION_WROTE      0x02
