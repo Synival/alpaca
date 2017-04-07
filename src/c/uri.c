@@ -295,3 +295,14 @@ al_uri_path_t *al_uri_path_is (const al_uri_path_t *path, ...)
       return NULL;
    return result;
 }
+
+char *al_uri_path_full (const al_uri_path_t *path, char *out, size_t size)
+{
+   const al_uri_path_t *p;
+   size_t len = 0;
+   out[0] = '\0';
+   for (p = path; p != NULL; p = p->next)
+      snprintf (out + len, size - len, "%s%s", (path == p &&
+         !(path->uri->flags & AL_URI_RELATIVE)) ? "" : "/", path->name);
+   return out;
+}

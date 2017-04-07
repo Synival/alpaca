@@ -37,14 +37,19 @@ struct _al_uri_parameter_t {
 al_uri_t *al_uri_new (const char *string);
 int al_uri_free (al_uri_t *uri);
 char *al_uri_decode (const char *input, char *output, size_t output_size);
-al_uri_path_t *al_uri_path_append (al_uri_t *uri, al_uri_path_t *prev,
-   const char *name);
-int al_uri_path_free (al_uri_path_t *path);
+
+/* parameter functions. */
 al_uri_parameter_t *al_uri_parameter_append (al_uri_t *uri,
    al_uri_parameter_t *prev, const char *name, const char *value);
 int al_uri_parameter_free (al_uri_parameter_t *param);
+
+/* path functions. */
+al_uri_path_t *al_uri_path_append (al_uri_t *uri, al_uri_path_t *prev,
+   const char *name);
+int al_uri_path_free (al_uri_path_t *path);
 al_uri_path_t *al_uri_path_has_v (const al_uri_path_t *path, va_list args);
 al_uri_path_t *al_uri_path_has (const al_uri_path_t *path, ...);
 al_uri_path_t *al_uri_path_is (const al_uri_path_t *path, ...);
+char *al_uri_path_full (const al_uri_path_t *path, char *out, size_t size);
 
 #endif
