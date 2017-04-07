@@ -21,17 +21,17 @@ AL_HTTP_FUNC (example_http_error)
 AL_HTTP_FUNC (example_http_get)
 {
    /* simulate an error if our URI is 'error'. */
-   if (al_uri_path_is (request->uri->path, "error", NULL)) {
+   if (al_uri_path_is (path, "error", NULL)) {
       al_http_set_status_code (request, 200);
-      return example_http_error (request, func, data);
+      return example_http_error (request, func, data, path);
    }
    /* return a no-content page, whose response code should be 204. */
-   else if (al_uri_path_is (request->uri->path, "no_content", NULL)) {
+   else if (al_uri_path_is (path, "no_content", NULL)) {
       al_http_set_status_code (request, 204);
       return 0;
    }
    /* return a blank page (different from 'no_content'). */
-   else if (al_uri_path_is (request->uri->path, "blank", NULL))
+   else if (al_uri_path_is (path, "blank", NULL))
       return 0;
 
    char html[8192];
@@ -67,7 +67,7 @@ AL_HTTP_FUNC (example_http_get)
       "<h1>URI Path:</h1>\n"
       "<ul>\n");
    al_uri_path_t *p;
-   for (p = request->uri->path; p != NULL; p = p->next) {
+   for (p = path; p != NULL; p = p->next) {
       snprintf (html, sizeof (html), "   <li>%s</li>\n",
          (p->name[0] != '\0') ? p->name : "<i>(default)</i>");
       al_http_write_string (request, html);

@@ -333,7 +333,7 @@ int al_http_state_finish (al_http_state_t *state)
 
    /* run our function, if it exists. */
    if (fd)
-      fd->func (state, fd, NULL);
+      fd->func (state, fd, NULL, state->uri->path);
 
    /* write everything out, including the header. */
    al_http_write_finish (state);
