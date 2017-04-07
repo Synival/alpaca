@@ -335,9 +335,15 @@ char *al_uri_path_full (const al_uri_path_t *path, char *out, size_t size)
 {
    const al_uri_path_t *p;
    size_t len = 0;
-   out[0] = '\0';
-   for (p = path; p != NULL; p = p->next)
-      snprintf (out + len, size - len, "%s%s", (path == p &&
-         !(path->uri->flags & AL_URI_RELATIVE)) ? "" : "/", path->name);
+   if (path == NULL) {
+      snprintf (out, size, "(null)");
+      return NULL;
+   }
+   if (size >= 1)
+      out[0] = '\0';
+   for (p = path; p != NULL && len + 1 < size; p = p->next)
+      len += snprintf (out + len, size - len, "%s%s",
+         (p->prev != NULL || !(path->uri->flags & AL_URI_RELATIVE)) ? "/" : "",
+         p->name);
    return out;
 }
