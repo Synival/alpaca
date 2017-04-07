@@ -61,6 +61,13 @@ al_uri_t *al_uri_new (const char *string)
 
       /* build path. */
       for (; pos != NULL; pos = next) {
+         /* forbid paths that start with a period. */
+         if (*pos == '.') {
+            illegal = 1;
+            break;
+         }
+
+         /* cap off our token and position the next one. */
          if ((next = strchr (pos, '/')) != NULL)
             { *next = '\0'; next++; }
 
