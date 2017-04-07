@@ -210,8 +210,15 @@ int al_uri_path_free (al_uri_path_t *path)
 al_uri_parameter_t *al_uri_parameter_append (al_uri_t *uri,
    al_uri_parameter_t *prev, const char *name, const char *value)
 {
+   /* replace old values with new ones. */
+   al_uri_parameter_t *new;
+   if ((new = al_uri_parameter_get (uri, name)) != NULL) {
+      al_util_replace_string (&(new->value), value);
+      return new;
+   }
+
    /* initialize a parameter with our name + value pair. */
-   al_uri_parameter_t *new = calloc (1, sizeof (al_uri_parameter_t));
+   new = calloc (1, sizeof (al_uri_parameter_t));
    new->name  = strdup (name);
    new->value = strdup (value);
 
@@ -226,6 +233,15 @@ al_uri_parameter_t *al_uri_parameter_append (al_uri_t *uri,
 
    /* return our new path node. */
    return new;
+}
+
+al_uri_parameter_t *al_uri_parameter_get (al_uri_t *uri, const char *name)
+{
+   al_uri_parameter_t *p;
+   for (p = uri->parameters; p != NULL; p = p->next)
+      if (strcmp (p->name, name) == 0)
+         return p;
+   return NULL;
 }
 
 int al_uri_parameter_free (al_uri_parameter_t *param)
@@ -287,4 +303,23 @@ al_uri_path_t *al_uri_path_is (const al_uri_path_t *path, ...)
    if (result == NULL || result->next != NULL)
       return NULL;
    return result;
+}
+
+al_uri_path_t *al_uri_path_at (const al_uri_path_t *path, int index)
+{
+   while (index > 0 && path) {
+      path = path->next;
+      index--;
+   }
+   return (al_uri_path_t *) path;
+}
+
+int al_uri_path_length (const al_uri_path_t *path)
+{
+   int count = 0;
+   while (path && path->name[0] != '\0') {
+      path++;
+      count++;
+   }
+   return count;
 }
