@@ -87,6 +87,7 @@ int al_http_set_status_code (al_http_state_t *state, int status_code);
 int al_http_write (al_http_state_t *state, const unsigned char *buf,
    size_t size);
 int al_http_write_string (al_http_state_t *state, const char *string);
+int al_http_write_stringf (al_http_state_t *state, const char *format, ...);
 int al_http_write_finish (al_http_state_t *state);
 
 /* hooks and default functions. */

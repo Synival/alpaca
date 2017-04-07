@@ -4,6 +4,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include "alpaca/connections.h"
 #include "alpaca/modules.h"
@@ -504,6 +505,19 @@ int al_http_write_string (al_http_state_t *state, const char *string)
 {
    return al_http_write (state, (const unsigned char *) string,
       strlen (string));
+}
+
+int al_http_write_stringf (al_http_state_t *state, const char *format, ...)
+{
+   /* write format to a buffer. */
+   char buf[16384];
+   va_list args;
+   va_start (args, format);
+   vsnprintf (buf, sizeof (buf), format, args);
+   va_end (args);
+
+   /* write our formatted string out. */
+   return al_http_write_string (state, buf);
 }
 
 const char *al_http_status_code_string (int status_code)
