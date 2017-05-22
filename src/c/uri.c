@@ -285,6 +285,20 @@ al_uri_path_t *al_uri_path_has_v (const al_uri_path_t *path, va_list args)
    return (al_uri_path_t *) last;
 }
 
+al_uri_path_t *al_uri_path_has_a (const al_uri_path_t *path, char **args)
+{
+   /* works the same as function above, just with an array. */
+   const al_uri_path_t *last = NULL;
+   int i;
+   for (i = 0; args[i] != NULL; i++) {
+      if (path == NULL || strcmp (path->name, args[i]) != 0)
+         return NULL;
+      last = path;
+      path = path->next;
+   }
+   return (al_uri_path_t *) last;
+}
+
 al_uri_path_t *al_uri_path_has (const al_uri_path_t *path, ...)
 {
    va_list args;
