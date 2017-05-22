@@ -285,7 +285,7 @@ al_uri_path_t *al_uri_path_has_v (const al_uri_path_t *path, va_list args)
    return (al_uri_path_t *) last;
 }
 
-al_uri_path_t *al_uri_path_has_a (const al_uri_path_t *path, char **args)
+al_uri_path_t *al_uri_path_has_a (const al_uri_path_t *path, const char **args)
 {
    /* works the same as function above, just with an array. */
    const al_uri_path_t *last = NULL;

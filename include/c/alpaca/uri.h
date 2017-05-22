@@ -49,7 +49,7 @@ al_uri_path_t *al_uri_path_append (al_uri_t *uri, al_uri_path_t *prev,
    const char *name);
 int al_uri_path_free (al_uri_path_t *path);
 al_uri_path_t *al_uri_path_has_v (const al_uri_path_t *path, va_list args);
-al_uri_path_t *al_uri_path_has_a (const al_uri_path_t *path, char **args);
+al_uri_path_t *al_uri_path_has_a (const al_uri_path_t *path, const char **args);
 al_uri_path_t *al_uri_path_has (const al_uri_path_t *path, ...);
 al_uri_path_t *al_uri_path_is (const al_uri_path_t *path, ...);
 char *al_uri_path_full (const al_uri_path_t *path, char *out, size_t size);
