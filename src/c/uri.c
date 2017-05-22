@@ -139,6 +139,8 @@ int al_uri_free (al_uri_t *uri)
       al_uri_parameter_free (uri->parameters);
 
    /* free allocated strings. */
+   if (uri->str_full)
+      free (uri->str_full);
    if (uri->str_path)
       free (uri->str_path);
    if (uri->str_query)
