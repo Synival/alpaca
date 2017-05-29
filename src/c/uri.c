@@ -84,40 +84,8 @@ al_uri_t *al_uri_new (const char *string)
    }
 
    /* tokenize our query with either '&' or ';' as delimiters. */
-   if (new->str_query && !illegal) {
-      char *eq, *left, *right, decoded_l[256], decoded_r[256];
-      al_uri_parameter_t *p = NULL;
-
-      str = strdup (new->str_query);
-      for (pos = str; pos != NULL; pos = next) {
-         if ((next = strpbrk (pos, ";&")) != NULL)
-            { *next = '\0'; next++; }
-         if (pos[0] == '\0')
-            continue;
-
-         /* is there an equal sign in our parameter? if no, value is 'true'. */
-         if ((eq = strchr (pos, '=')) == NULL) {
-            left  = pos;
-            right = "true";
-         }
-         else {
-            *eq = '\0';
-            left  = pos;
-            right = eq + 1;
-         }
-
-         /* decode left and right sides of the parameter. */
-         if (!al_uri_decode (left,  decoded_l, sizeof (decoded_l)) ||
-             !al_uri_decode (right, decoded_r, sizeof (decoded_r))) {
-            illegal = 1;
-            break;
-         }
-
-         /* append the name+value pair to our parameter list. */
-         p = al_uri_parameter_append (new, p, decoded_l, decoded_r);
-      }
-      free (str);
-   }
+   if (new->str_query && !illegal)
+      illegal = !al_uri_parameter_build (new, new->str_query, NULL);
 
    /* if, after all this work, it was an invalid URI, undo all of our
     * hard work and return NULL. */
@@ -128,6 +96,49 @@ al_uri_t *al_uri_new (const char *string)
 
    /* return the new URI. */
    return new;
+}
+
+int al_uri_parameter_build (al_uri_t *uri, const char *query,
+   const al_uri_parameter_t **param_out)
+{
+   char *eq, *left, *right, decoded_l[256], decoded_r[256];
+   int rval = 1;
+   const al_uri_parameter_t *p = NULL, *p_first = NULL;
+
+   char *str = strdup (query), *pos, *next;
+   for (pos = str; pos != NULL; pos = next) {
+      if ((next = strpbrk (pos, ";&")) != NULL)
+         { *next = '\0'; next++; }
+      if (pos[0] == '\0')
+         continue;
+
+      /* is there an equal sign in our parameter? if no, value is 'true'. */
+      if ((eq = strchr (pos, '=')) == NULL) {
+         left  = pos;
+         right = "true";
+      }
+      else {
+         *eq = '\0';
+         left  = pos;
+         right = eq + 1;
+      }
+
+      /* decode left and right sides of the parameter. */
+      if (!al_uri_decode (left,  decoded_l, sizeof (decoded_l)) ||
+          !al_uri_decode (right, decoded_r, sizeof (decoded_r))) {
+         rval = 0;
+         break;
+      }
+
+      /* append the name+value pair to our parameter list. */
+      p = al_uri_parameter_append (uri, &p_first, p, decoded_l, decoded_r);
+   }
+   free (str);
+
+   /* store output variables and return our error code. */
+   if (param_out)
+      *param_out = p_first;
+   return rval;
 }
 
 int al_uri_free (al_uri_t *uri)
@@ -216,12 +227,13 @@ int al_uri_path_free (al_uri_path_t *path)
    return 1;
 }
 
-al_uri_parameter_t *al_uri_parameter_append (al_uri_t *uri,
-   al_uri_parameter_t *prev, const char *name, const char *value)
+const al_uri_parameter_t *al_uri_parameter_append (const al_uri_t *uri,
+   const al_uri_parameter_t **list, const al_uri_parameter_t *prev, const char *name,
+   const char *value)
 {
    /* replace old values with new ones. */
    al_uri_parameter_t *new;
-   if ((new = al_uri_parameter_get (uri, name)) != NULL) {
+   if ((new = (al_uri_parameter_t *) al_uri_parameter_get_real (list, name)) != NULL) {
       al_util_replace_string (&(new->value), value);
       return new;
    }
@@ -232,36 +244,58 @@ al_uri_parameter_t *al_uri_parameter_append (al_uri_t *uri,
    new->value = strdup (value);
 
    /* link it. */
-   new->uri = uri;
-   if (prev) {
-      prev->next = new;
-      new->prev = prev;
+   al_uri_parameter_t *prev_m = (al_uri_parameter_t *) prev;
+   new->uri = (al_uri_t *) uri;
+   if (prev_m) {
+      prev_m->next = new;
+      new->prev    = prev_m;
    }
    else
-      uri->parameters = new;
+      *list = new;
 
    /* return our new path node. */
    return new;
 }
 
-al_uri_parameter_t *al_uri_parameter_get (al_uri_t *uri, const char *name)
+const al_uri_parameter_t *al_uri_parameter_get_real (const al_uri_parameter_t **list,
+   const char *name)
 {
-   al_uri_parameter_t *p;
-   for (p = uri->parameters; p != NULL; p = p->next)
+   const al_uri_parameter_t *p;
+   for (p = *list; p != NULL; p = p->next)
       if (strcmp (p->name, name) == 0)
          return p;
    return NULL;
 }
+const al_uri_parameter_t *al_uri_parameter_get (const al_uri_t *uri, const char *name)
+{
+   const al_uri_parameter_t **list = (const al_uri_parameter_t **) &(uri->parameters);
+   return al_uri_parameter_get_real (list, name);
+}
 
-int al_uri_parameter_free (al_uri_parameter_t *param)
+int al_uri_parameter_free_real (al_uri_parameter_t *param, al_uri_parameter_t **list)
 {
    if (param->name)
       free (param->name);
    if (param->value)
       free (param->value);
-   AL_LL_UNLINK (param, prev, next, param->uri, parameters);
+   if (param->next)
+      param->next->prev = param->prev;
+   if (param->prev)
+      param->prev->next = param->next;
+   else
+      *list = param->next;
    free (param);
    return 1;
+}
+int al_uri_parameter_free (al_uri_parameter_t *param)
+   { return al_uri_parameter_free_real (param, &(param->uri->parameters)); }
+
+int al_uri_parameter_free_all (al_uri_parameter_t **list)
+{
+   int count = 0;
+   while (*list)
+      count += al_uri_parameter_free_real (*list, list);
+   return count;
 }
 
 al_uri_path_t *al_uri_path_has_v (const al_uri_path_t *path, va_list args)
