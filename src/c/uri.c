@@ -107,6 +107,8 @@ int al_uri_parameter_build (al_uri_t *uri, const char *query,
 
    char *str = strdup (query), *pos, *next;
    for (pos = str; pos != NULL; pos = next) {
+      while (*pos == ' ')
+         pos++;
       if ((next = strpbrk (pos, ";&")) != NULL)
          { *next = '\0'; next++; }
       if (pos[0] == '\0')
