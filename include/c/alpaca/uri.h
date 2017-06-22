@@ -39,10 +39,17 @@ int al_uri_free (al_uri_t *uri);
 char *al_uri_decode (const char *input, char *output, size_t output_size);
 
 /* parameter functions. */
-al_uri_parameter_t *al_uri_parameter_append (al_uri_t *uri,
-   al_uri_parameter_t *prev, const char *name, const char *value);
+int al_uri_parameter_build (al_uri_t *uri, const char *query,
+   const al_uri_parameter_t **param_out);
+const al_uri_parameter_t *al_uri_parameter_append (const al_uri_t *uri,
+   const al_uri_parameter_t **list, const al_uri_parameter_t *prev, const char *name,
+   const char *value);
+const al_uri_parameter_t *al_uri_parameter_get_real (const al_uri_parameter_t **list,
+   const char *name);
+const al_uri_parameter_t *al_uri_parameter_get (const al_uri_t *uri, const char *name);
+int al_uri_parameter_free_real (al_uri_parameter_t *param, al_uri_parameter_t **list);
 int al_uri_parameter_free (al_uri_parameter_t *param);
-al_uri_parameter_t *al_uri_parameter_get (al_uri_t *uri, const char *name);
+int al_uri_parameter_free_all (al_uri_parameter_t **list);
 
 /* path functions. */
 al_uri_path_t *al_uri_path_append (al_uri_t *uri, al_uri_path_t *prev,
