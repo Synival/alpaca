@@ -385,8 +385,8 @@ int al_http_write_finish (al_http_state_t *state)
    if (state->output) {
       /* if the status code is 204 (No Content), write nothing more. */
       if (state->status_code != 204)
-         al_connection_write (state->connection,
-            (const char *) state->output, state->output_len);
+         al_connection_write (state->connection, state->output,
+            state->output_len);
       al_http_state_cleanup_output (state);
    }
 
